@@ -103,11 +103,6 @@
 
     (slime-eval `(esb::list-definitions ,package ,definition-type))))
 
-(sb:list-categories sb:current-browser-system "lala")
-
-(slime-eval '(esb::emacs-package-definitions "SWANK" :function))
-(slime-eval '(esb::emacs-package-definitions "SWANK" :variable))
-
 (defvar sb:wm)
 
 (defun open-system-browser ()
@@ -137,11 +132,3 @@
            )))
   (sb:open-packages-buffer)
   (wlf:select sb:wm 'packages))
-
-
-
-(defun sb:read-lines (filePath)
-  "Return a list of lines of a file at filePath."
-  (with-temp-buffer
-    (insert-file-contents filePath)
-    (split-string (buffer-string) "\n" t)))
