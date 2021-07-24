@@ -85,10 +85,14 @@
 	(let ((source (find :source definition-properties :key 'car)))
 	  (let ((file (cadr (find :file (remove-if-not 'listp source) :key 'car)))
 		(position (cadr (find :position (remove-if-not 'listp source) :key 'car))))
-	    (setq buffer-file-name file)
 	    (insert-file-contents file)
 	    (lisp-mode)
 	    (wlf:select sb:wm 'definition)
+	    ;; Assign file to buffer so changes in definition buffer can be saved
+	    (setq buffer-file-name file)
+	    ;; For some reason, sometimes definition buffer sets to read-only.
+	    ;; The following prevents that:
+	    (setq buffer-read-only nil)
 	    (goto-char position)))))))
 
 (defmethod sb:list-categories ((system sb:common-lisp-system) package)
