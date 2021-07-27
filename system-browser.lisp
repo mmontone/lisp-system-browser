@@ -8,12 +8,12 @@
   (let ((properties-function
           (ecase category
             (:function 'def-properties:function-properties)
-	    (:macro 'def-properties:macro-properties)
+            (:macro 'def-properties:macro-properties)
             (:class 'def-properties:class-properties)
             (:variable 'def-properties:variable-properties)))
         (predicate-function
           (ecase category
-	    (:macro 'def-properties:symbol-macro-p)
+            (:macro 'def-properties:symbol-macro-p)
             (:function 'def-properties:symbol-function-p)
             (:class 'def-properties:symbol-class-p)
             (:variable 'def-properties:symbol-variable-p))))
@@ -23,7 +23,7 @@
         (when (and (eql (symbol-package symbol) package)
                    (funcall predicate-function symbol))
           (push (funcall properties-function symbol) defs)))
-      (sort defs 'string< :key (lambda (x) (cdr (assoc x :name)))))))
+      (sort defs 'string< :key (lambda (x) (alexandria:assoc-value x :name))))))
 
 (defun serialize-for-emacs (info)
   (when (alexandria:assoc-value info :package)
@@ -43,19 +43,13 @@
   (let ((predicate-function
           (ecase category
             (:function 'def-properties:symbol-function-p)
-	    (:macro 'def-properties:symbol-macro-p)
+            (:macro 'def-properties:symbol-macro-p)
             (:class 'def-properties:symbol-class-p)
             (:variable 'def-properties:symbol-variable-p))))
     (let (defs
-	     (package (find-package package-name)))
+             (package (find-package package-name)))
       (do-symbols (symbol package)
         (when (and (eql (symbol-package symbol) package)
-		   (funcall predicate-function symbol))
+                   (funcall predicate-function symbol))
           (push symbol defs)))
       (sort (mapcar 'symbol-name defs) 'string<))))
-
-(package-definitions "SWANK" :function)
-(package-definitions "SWANK" :variable)
-(emacs-package-definitions "SWANK" :function)
-
-(list-definitions "SWANK" :function)

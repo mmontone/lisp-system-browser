@@ -176,4 +176,8 @@
 
 (defun quit-system-browser ()
   (interactive)
+  (kill-buffer sb:packages-buffer)
+  (kill-buffer sb:categories-buffer)
+  (kill-buffer sb:definitions-buffer)
+  (kill-buffer sb:definition-buffer)
   (wlf:clear-windows sb:wm t))
