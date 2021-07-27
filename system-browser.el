@@ -62,26 +62,32 @@
   (setq header-line-format mode-line-format)
   (setq mode-line-format nil))
 
+(defvar-local sb:system-browser-buffer-type nil) 
+
 (defun sb:initialize-packages-buffer ()
   (setq sb:packages-buffer (get-buffer-create "*sb-packages*"))
   (with-current-buffer sb:packages-buffer
     (sb:setup-list-buffer)
     (when (sb:packages-buffer-mode-line-format sb:current-browser-system)
-      (setq header-line-format (sb:packages-buffer-mode-line-format sb:current-browser-system)))))
+      (setq header-line-format (sb:packages-buffer-mode-line-format sb:current-browser-system)))
+    (setq sb:system-browser-buffer-type 'packages)
+    ))
 
 (defun sb:initialize-categories-buffer ()
   (setq sb:categories-buffer (get-buffer-create "*sb-categories*"))
   (with-current-buffer sb:categories-buffer
     (sb:setup-list-buffer)
     (when (sb:categories-buffer-mode-line-format sb:current-browser-system)
-      (setq header-line-format (sb:categories-buffer-mode-line-format sb:current-browser-system)))))
+      (setq header-line-format (sb:categories-buffer-mode-line-format sb:current-browser-system)))
+    (setq sb:system-browser-buffer-type 'categories)))
 
 (defun sb:initialize-definitions-buffer ()
   (setq sb:definitions-buffer (get-buffer-create "*sb-definitions*"))
   (with-current-buffer sb:definitions-buffer
     (sb:setup-list-buffer)
     (when (sb:definitions-buffer-mode-line-format sb:current-browser-system)
-      (setq header-line-format (sb:definitions-buffer-mode-line-format sb:current-browser-system)))))
+      (setq header-line-format (sb:definitions-buffer-mode-line-format sb:current-browser-system)))
+    (setq sb:system-browser-buffer-type 'definitions)))
 
 (defun sb:initialize-definition-buffer ()
   (setq sb:definition-buffer (get-buffer-create "*sb-definition*")))
@@ -218,7 +224,7 @@
   
   (setq sb:wm
         (wlf:layout
-         '(| (:left-size-ratio 0.3)
+         '(| (:left-size-ratio 0.20)
              (- (:left-size-ratio 0.33)
                 packages
                 (- categories
@@ -247,3 +253,18 @@
   (kill-buffer sb:definitions-buffer)
   (kill-buffer sb:definition-buffer)
   (wlf:clear-windows sb:wm t))
+
+(defun sb:read-name ()
+  (case sb:system-browser-buffer-type
+    (package (slime-read-package-name "Package: "))
+    (definitions (slime-read-symbol-name "Symbol: "))))
+
+(defun sb:goto (name)
+  (case sb:system-browser-buffer-type
+    (package (sb:create-categories-buffer name))
+    (definitions (sb:create-definition-buffer))))
+
+(defun system-browser-goto (name)
+  (interactive (list (sb:read-name)))
+
+  (sb:goto name))
