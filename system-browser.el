@@ -37,6 +37,7 @@
 (defvar sb:catgories-buffer)
 (defvar sb:definitions-buffer)
 (defvar sb:definitions-buffer)
+(defvar sb:documentation-buffer)
 
 (defvar sb:current-browser-system (make-instance 'sb:common-lisp-system))
 
@@ -75,6 +76,9 @@
 
 (defun sb:initialize-definition-buffer ()
   (setq sb:definition-buffer (get-buffer-create "*sb-definition*")))
+
+(defun sb:initialize-documentation-buffer ()
+  (setq sb:documentation-buffer (get-buffer-create "*sb-documentation*")))
 
 (defun sb:create-packages-buffer ()
   (with-current-buffer "*sb-packages*"
@@ -116,7 +120,8 @@
     (dolist (definition (sb:list-definitions sb:current-browser-system package category))
       (insert-button definition
                      'action (lambda (btn)
-                               (sb:create-definition-buffer package category definition))
+			       (sb:create-definition-buffer package category definition)
+			       (sb:create-documentation-buffer package category definition))
                      'follow-link t
                      'help-echo "Browse definition")
       (newline))
@@ -154,6 +159,30 @@
 	    (recenter-top-bottom 0)
 	    ))))))
 
+(defun sb:create-documentation-buffer (package category definition)
+  (let ((definition-type
+          (cond
+           ((string= category "Functions") :function)
+           ((string= category "Variables") :variable)
+           ((string= category "Macros") :macro)
+           ((string= category "Classes") :class)))
+        (definition-function
+          (cond
+           ((string= category "Functions") 'def-properties:function-properties)
+           ((string= category "Variables") 'def-properties:variable-properties)
+           ((string= category "Macros") 'def-properties:macro-properties)
+           ((string= category "Classes") 'def-properties:class-properties))))
+    (let ((definition-properties (slime-eval `(esb::serialize-for-emacs (,definition-function ',(make-symbol (concat package "::" definition)))))))
+      (with-current-buffer "*sb-documentation*"
+	(setq buffer-read-only nil)
+        (erase-buffer)
+	;;(insert (prin1-to-string definition-properties))
+	(let ((documentation (cdr (assoc :documentation definition-properties))))
+	  (when documentation
+	    (insert documentation)))	
+	(goto-char 0)
+	(setq buffer-read-only t)))))
+
 (defmethod sb:list-categories ((system sb:common-lisp-system) package)
   '("Variables" "Macros" "Functions" "Classes" "Generic Functions"))
 
@@ -176,6 +205,7 @@
   (sb:initialize-categories-buffer)
   (sb:initialize-definitions-buffer)
   (sb:initialize-definition-buffer)
+  (sb:initialize-documentation-buffer)
   
   (setq sb:wm
         (wlf:layout
@@ -184,7 +214,9 @@
                 packages
                 (- categories
                    definitions))
-             definition)
+             (- (:left-size-ratio 0.66)
+		definition
+		documentation))
          '((:name packages
                   :buffer "*sb-packages*")
            (:name categories
@@ -193,6 +225,8 @@
                   :buffer "*sb-definitions*")
            (:name definition
                   :buffer "*sb-definition*")
+	   (:name documentation
+		  :buffer "*sb-documentation*")
            )))
   (sb:create-packages-buffer)
   (wlf:select sb:wm 'packages))
