@@ -150,7 +150,9 @@
             ;; For some reason, sometimes definition buffer sets to read-only.
             ;; The following prevents that:
             (setq buffer-read-only nil)
-            (goto-char position)))))))
+            (goto-char position)
+	    (recenter-top-bottom 0)
+	    ))))))
 
 (defmethod sb:list-categories ((system sb:common-lisp-system) package)
   '("Variables" "Macros" "Functions" "Classes" "Generic Functions"))
