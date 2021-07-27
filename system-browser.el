@@ -43,13 +43,42 @@
 (defgroup system-browser nil
   "System browser configuration")
 
+(defun sb:setup-list-buffer ()
+  (set-face-attribute 'header-line nil
+			:foreground "gray0"
+			:background "cyan"
+			:overline "cyan"
+			:underline "cyan")
+  (setq header-line-format mode-line-format)
+  (setq mode-line-format nil))
+
+(defun sb:initialize-packages-buffer ()
+  (setq sb:packages-buffer (get-buffer-create "*sb-packages*"))
+  (with-current-buffer sb:packages-buffer
+    (sb:setup-list-buffer)
+    (when (sb:packages-buffer-mode-line-format sb:current-browser-system)
+      (setq header-line-format (sb:packages-buffer-mode-line-format sb:current-browser-system)))))
+
+(defun sb:initialize-categories-buffer ()
+  (setq sb:categories-buffer (get-buffer-create "*sb-categories*"))
+  (with-current-buffer sb:categories-buffer
+    (sb:setup-list-buffer)
+    (when (sb:categories-buffer-mode-line-format sb:current-browser-system)
+      (setq header-line-format (sb:categories-buffer-mode-line-format sb:current-browser-system)))))
+
+(defun sb:initialize-definitions-buffer ()
+  (setq sb:definitions-buffer (get-buffer-create "*sb-definitions*"))
+  (with-current-buffer sb:definitions-buffer
+    (sb:setup-list-buffer)
+    (when (sb:definitions-buffer-mode-line-format sb:current-browser-system)
+      (setq header-line-format (sb:definitions-buffer-mode-line-format sb:current-browser-system)))))
+
+(defun sb:initialize-definition-buffer ()
+  (setq sb:definition-buffer (get-buffer-create "*sb-definition*")))
+
 (defun sb:create-packages-buffer ()
   (with-current-buffer "*sb-packages*"
     (setq buffer-read-only nil)
-    (when (sb:packages-buffer-mode-line-format sb:current-browser-system)
-      (setq mode-line-format (sb:packages-buffer-mode-line-format sb:current-browser-system)))
-    (setq header-line-format mode-line-format)
-    (setq mode-line-format nil)
     (erase-buffer)
     (dolist (package-name (sb:list-packages sb:current-browser-system))
       (insert-button package-name
@@ -64,11 +93,7 @@
 
 (defun sb:create-categories-buffer (package)
   (with-current-buffer "*sb-categories*"
-    (setq buffer-read-only nil)
-    (when (sb:categories-buffer-mode-line-format sb:current-browser-system)
-      (setq mode-line-format (sb:categories-buffer-mode-line-format sb:current-browser-system)))
-    (setq header-line-format mode-line-format)
-    (setq mode-line-format nil)
+    (setq buffer-read-only nil)    
     (erase-buffer)
     (insert package)
     (newline)
@@ -85,10 +110,6 @@
 (defun sb:create-definitions-buffer (package category)
   (with-current-buffer "*sb-definitions*"
     (setq buffer-read-only nil)
-    (when (sb:definitions-buffer-mode-line-format sb:current-browser-system)
-      (setq mode-line-format (sb:definitions-buffer-mode-line-format sb:current-browser-system)))
-    (setq header-line-format mode-line-format)
-    (setq mode-line-format nil)
     (erase-buffer)
     (insert category)
     (newline)
@@ -149,11 +170,11 @@
 (defun system-browser ()
   (interactive)
 
-  (setq sb:packages-buffer (get-buffer-create "*sb-packages*"))
-  (setq sb:categories-buffer (get-buffer-create "*sb-categories*"))
-  (setq sb:definitions-buffer (get-buffer-create "*sb-definitions*"))
-  (setq sb:definition-buffer (get-buffer-create "*sb-definition*"))
-
+  (sb:initialize-packages-buffer)
+  (sb:initialize-categories-buffer)
+  (sb:initialize-definitions-buffer)
+  (sb:initialize-definition-buffer)
+  
   (setq sb:wm
         (wlf:layout
          '(| (:left-size-ratio 0.3)
