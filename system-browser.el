@@ -41,15 +41,24 @@
 
 (defvar sb:current-browser-system (make-instance 'sb:common-lisp-system))
 
+(defun alist-to-plist (alist)
+  (let ((plist '()))
+    (dolist (cons alist)
+      (push (car cons) plist)
+      (push (cdr cons) plist))
+    (reverse plist)))
+
+;;(alist-to-plist '((a . 22) (b . "asf")))
+
 (defgroup system-browser nil
   "System browser configuration")
 
 (defun sb:setup-list-buffer ()
-  (set-face-attribute 'header-line nil
-			:foreground "gray0"
-			:background "cyan"
-			:overline "cyan"
-			:underline "cyan")
+  ;; TODO: use a minor mode for list buffer to set this
+  (apply 'set-face-attribute
+	 'header-line nil
+	 (alist-to-plist (face-all-attributes 'mode-line)))
+		      
   (setq header-line-format mode-line-format)
   (setq mode-line-format nil))
 
