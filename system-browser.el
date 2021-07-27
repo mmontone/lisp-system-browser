@@ -173,3 +173,7 @@
            )))
   (sb:create-packages-buffer)
   (wlf:select sb:wm 'packages))
+
+(defun quit-system-browser ()
+  (interactive)
+  (wlf:clear-windows sb:wm t))
