@@ -109,11 +109,15 @@
   (with-current-buffer "*sb-definition*"
     (lisp-mode)
 
+    ;; Show visited file in mode-line
+    (setq mode-line-format (cons '(:eval (file-name-nondirectory buffer-file-name))
+				 (cdr mode-line-format)))
+
     ;; Buttons in mode-line
-    (push '(:eval (propertize "[Toggle docs]"
+    (push '(:eval (propertize "[Toggle docs] "
                               'local-map sb:mode-line-toggle-docs-map))
           mode-line-format)
-    (push '(:eval (propertize "[Quit]"
+    (push '(:eval (propertize "[Quit] "
                               'local-map quit-system-browser))
           mode-line-format)
 
