@@ -190,24 +190,28 @@
   (wlf:select sb:wm 'definitions))
 
 (defun sb:set-definition-buffer-file (file &optional position)
-  ;(kill-buffer sb:definition-buffer)
-  ;(sb:initialize-definition-buffer)
-  
-  (with-current-buffer sb:definition-buffer
-    (wlf:select sb:wm 'definition)
+  (block func
+    (with-current-buffer sb:definition-buffer
 
-    (erase-buffer)
-    (insert-file-contents file)
-    ;; Assign file to buffer so changes in definition buffer can be saved
-    (setq buffer-file-name file)
-    (setq default-directory file)
-    ;; For some reason, sometimes definition buffer sets to read-only.
-    ;; The following prevents that:
-    (setq buffer-read-only nil)
-    (set-buffer-modified-p nil)
-    (when position
-      (goto-char position)
-      (recenter-top-bottom 0))))
+      ;; Check for unsaved changes in definition buffer
+      (when (buffer-modified-p)
+	(when (not (yes-or-no-p "System Browser definition buffer modified. Discard changes? "))
+	  (return-from func)))
+  
+      (wlf:select sb:wm 'definition)
+
+      (erase-buffer)
+      (insert-file-contents file)
+      ;; Assign file to buffer so changes in definition buffer can be saved
+      (setq buffer-file-name file)
+      (setq default-directory file)
+      ;; For some reason, sometimes definition buffer sets to read-only.
+      ;; The following prevents that:
+      (setq buffer-read-only nil)
+      (set-buffer-modified-p nil)
+      (when position
+	(goto-char position)
+	(recenter-top-bottom 0)))))
 
 (defun sb:update-definition-buffer (package category definition)
   (let ((definition-type
