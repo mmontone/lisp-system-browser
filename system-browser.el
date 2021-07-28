@@ -114,7 +114,7 @@
 (defun sb:initialize-documentation-buffer ()
   (setq sb:documentation-buffer (get-buffer-create "*sb-documentation*")))
 
-(defun sb:create-packages-buffer ()
+(defun sb:update-packages-buffer ()
   (with-current-buffer "*sb-packages*"
     (setq buffer-read-only nil)
     (erase-buffer)
@@ -122,14 +122,14 @@
       (insert-button package-name
                      'action (lambda (btn)
                                (message package-name)
-                               (sb:create-categories-buffer package-name))
+                               (sb:update-categories-buffer package-name))
                      'follow-link t
                      'help-echo "Browse package")
       (newline))
     (setq buffer-read-only t))
   (wlf:select sb:wm 'packages))
 
-(defun sb:create-categories-buffer (package)
+(defun sb:update-categories-buffer (package)
   (with-current-buffer "*sb-categories*"
     (setq buffer-read-only nil)
     (erase-buffer)
@@ -138,14 +138,14 @@
     (dolist (category (sb:list-categories sb:current-browser-system package))
       (insert-button category
                      'action (lambda (btn)
-                               (sb:create-definitions-buffer package category))
+                               (sb:update-definitions-buffer package category))
                      'follow-link t
                      'help-echo "Browse category")
       (newline))
     (setq buffer-read-only t))
   (wlf:select sb:wm 'categories))
 
-(defun sb:create-definitions-buffer (package category)
+(defun sb:update-definitions-buffer (package category)
   (with-current-buffer "*sb-definitions*"
     (setq buffer-read-only nil)
     (erase-buffer)
@@ -154,7 +154,7 @@
     (dolist (definition (sb:list-definitions sb:current-browser-system package category))
       (insert-button definition
                      'action (lambda (btn)
-                               (sb:create-definition-buffer package category definition)
+                               (sb:update-definition-buffer package category definition)
                                (sb:create-documentation-buffer package category definition))
                      'follow-link t
                      'help-echo "Browse definition")
@@ -162,7 +162,7 @@
     (setq buffer-read-only t))
   (wlf:select sb:wm 'definitions))
 
-(defun sb:create-definition-buffer (package category definition)
+(defun sb:update-definition-buffer (package category definition)
   (let ((definition-type
           (cond
            ((string= category "Functions") :function)
@@ -263,7 +263,7 @@
            )))
   (when (not sb:show-documentation-buffer)
     (wlf:hide sb:wm 'documentation))
-  (sb:create-packages-buffer)
+  (sb:update-packages-buffer)
   (wlf:select sb:wm 'packages))
 
 (defun quit-system-browser ()
@@ -281,8 +281,8 @@
 
 (defun sb:goto (name)
   (case sb:system-browser-buffer-type
-    (package (sb:create-categories-buffer name))
-    (definitions (sb:create-definition-buffer))))
+    (package (sb:update-categories-buffer name))
+    (definitions (sb:update-definition-buffer))))
 
 (defun system-browser-goto (name)
   (interactive (list (sb:read-name)))
