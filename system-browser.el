@@ -360,6 +360,12 @@
 
   (sb:goto name))
 
+(defun system-browser-browse-package (name)
+  (interactive))
+
+(defun system-browser-browse-definition (name)
+  (interactive))
+
 (defun system-browser-toggle-docs ()
   (interactive)
   (wlf:toggle sb:wm 'documentation))
@@ -384,5 +390,11 @@
      :help "Toggle documentation panel"]
     ["Refresh browser" system-browser
      :help "Refresh the system browser"]
+    "--"
+    ["Browse package..." system-browser-browse-package
+     :help "Browse a package"]
+    ["Browse definition..." system-browser-browse-definition
+     :help "Browse a definition"]
+    "--"
     ["Quit" quit-system-browser
      :help "Quit System Browser"]))
