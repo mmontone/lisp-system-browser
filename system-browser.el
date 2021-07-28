@@ -66,7 +66,7 @@
          (alist-to-plist (face-all-attributes 'mode-line)))
   (setq header-line-format mode-line-format)
   (setq mode-line-format nil)
-
+  (hl-line-mode)
   (system-browser-mode))
 
 (defvar-local sb:system-browser-buffer-type nil)
