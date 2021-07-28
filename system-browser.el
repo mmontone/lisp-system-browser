@@ -386,15 +386,15 @@
   system-browser-mode-menu system-browser-mode-map
   "Menu for system-browser"
   '("System Browser"
-    ["Toggle documentation panel" system-browser-toggle-docs
-     :help "Toggle documentation panel"]
-    ["Refresh browser" system-browser
-     :help "Refresh the system browser"]
-    "--"
     ["Browse package..." system-browser-browse-package
      :help "Browse a package"]
     ["Browse definition..." system-browser-browse-definition
      :help "Browse a definition"]
+    "--"
+    ["Refresh browser" system-browser
+     :help "Refresh the system browser"]
+    ["Toggle documentation panel" system-browser-toggle-docs
+     :help "Toggle documentation panel"]
     "--"
     ["Quit" quit-system-browser
      :help "Quit System Browser"]))
