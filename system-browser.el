@@ -185,6 +185,7 @@
             (wlf:select sb:wm 'definition)
             ;; Assign file to buffer so changes in definition buffer can be saved
             (setq buffer-file-name file)
+	    (setq default-directory file)
             ;; For some reason, sometimes definition buffer sets to read-only.
             ;; The following prevents that:
             (setq buffer-read-only nil)
