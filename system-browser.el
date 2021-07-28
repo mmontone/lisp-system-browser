@@ -129,7 +129,7 @@
 
 (defun sb:update-packages-buffer ()
   (let ((packages (sb:list-packages sb:current-browser-system)))
-    (with-current-buffer "*sb-packages*"
+    (with-current-buffer sb:packages-buffer
       (setq buffer-read-only nil)
       (erase-buffer)
       (dolist (package-name packages)
@@ -146,7 +146,7 @@
 
 (defun sb:update-categories-buffer (package)
   (let ((categories (sb:list-categories sb:current-browser-system package)))
-    (with-current-buffer "*sb-categories*"
+    (with-current-buffer sb:categories-buffer
       (setq buffer-read-only nil)
       (erase-buffer)
       (insert package)
@@ -173,7 +173,7 @@
     ))
 
 (defun sb:update-definitions-buffer (package category)
-  (with-current-buffer "*sb-definitions*"
+  (with-current-buffer sb:definitions-buffer
     (setq buffer-read-only nil)
     (erase-buffer)
     (insert category)
@@ -190,7 +190,10 @@
   (wlf:select sb:wm 'definitions))
 
 (defun sb:set-definition-buffer-file (file &optional position)
-  (with-current-buffer "*sb-definition*"
+  ;(kill-buffer sb:definition-buffer)
+  ;(sb:initialize-definition-buffer)
+  
+  (with-current-buffer sb:definition-buffer
     (wlf:select sb:wm 'definition)
 
     (erase-buffer)
