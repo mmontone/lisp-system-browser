@@ -30,7 +30,7 @@
    :parse-docstring
    :list-lambda-list-args
    :asdf-system-packages
-   
+
    :symbol-kinds
    :symbol-kind-p
    :symbol-variable-p
@@ -95,18 +95,26 @@ Returns a list of alists of properties, one alist for each type of definition th
       (push (class-properties symbol shallow) properties))
     ;; TODO
     #+nil(when (symbol-type-p symbol)
-      (push (type-properties symbol shallow) properties))
+           (push (type-properties symbol shallow) properties))
     properties))
 
 (defun aget (alist key)
   (cdr (assoc key alist :test 'equalp)))
 
-(defun package-properties (&optional (package *package*))
-  (let (docs)
-    (do-external-symbols (symbol package)
-      (alexandria:when-let ((symbol-properties (symbol-properties symbol)))
-        (push symbol-properties docs)))
-    docs))
+(defun package-properties (package &optional shallow)
+  (let ((pck (find-package package)))
+    (list
+     (cons :name (package-name pck))
+     (cons :type :package)
+     (cons :documentation (documentation pck t))
+     (unless shallow
+       (cons :external-symbols
+             (let (docs)
+               (do-external-symbols (symbol package)
+                 (alexandria:when-let ((symbol-properties (symbol-properties symbol)))
+                   (push symbol-properties docs)))
+               docs)))
+     (cons :source (swank/backend:find-source-location pck)))))
 
 ;; From docbrowser
 
@@ -155,7 +163,7 @@ not available is DATA."
   (list (cons :name symbol)
         (cons :documentation (documentation symbol 'function))
         (cons :args (let ((*print-case* :downcase)
-			  (*print-pretty* nil)
+                          (*print-pretty* nil)
                           (*package* (symbol-package symbol)))
                       #+nil(format nil "~{~a~^ ~}"
                                    (mapcar #'format-argument-to-string (swank-backend:arglist symbol))
@@ -164,14 +172,14 @@ not available is DATA."
         (cons :arglist (swank::arglist symbol))
         (cons :package (symbol-package symbol))
         (cons :type :macro)
-	(cons :source (macro-source-location symbol))))
+        (cons :source (macro-source-location symbol))))
 
 
 (defun function-properties (symbol &optional shallow)
   (list (cons :name symbol)
         (cons :documentation (documentation symbol 'function))
         (cons :args (let ((*print-case* :downcase)
-			  (*print-pretty* nil)
+                          (*print-pretty* nil)
                           (*package* (symbol-package symbol)))
                       #+nil(format nil "~{~a~^ ~}"
                                    (mapcar #'format-argument-to-string (swank-backend:arglist symbol))
@@ -182,14 +190,14 @@ not available is DATA."
         (cons :type (cond ((macro-function symbol) :macro)
                           ((typep (symbol-function symbol) 'generic-function) :generic-function)
                           (t :function)))
-	(cons :source (swank/backend:find-source-location (symbol-function symbol)))))
+        (cons :source (swank/backend:find-source-location (symbol-function symbol)))))
 
 (defun generic-function-properties (symbol &optional shallow)
   (assert (typep (symbol-function symbol) 'generic-function))
   (list (cons :name symbol)
         (cons :documentation (documentation symbol 'function))
         (cons :args (let ((*print-case* :downcase)
-			  (*print-pretty* nil)
+                          (*print-pretty* nil)
                           (*package* (symbol-package symbol)))
                       #+nil(format nil "~{~a~^ ~}"
                                    (mapcar #'format-argument-to-string (swank-backend:arglist symbol))
@@ -198,8 +206,8 @@ not available is DATA."
         (cons :arglist (swank::arglist symbol))
         (cons :package (symbol-package symbol))
         (cons :type :generic-function)
-	(unless shallow
-	  (cons :methods (closer-mop:generic-function-methods (symbol-function symbol))))))
+        (unless shallow
+          (cons :methods (closer-mop:generic-function-methods (symbol-function symbol))))))
 
 ;; There must be a better way of getting the source location of a variable ...
 #-sbcl
@@ -229,10 +237,10 @@ not available is DATA."
         (cons :constant-p (constantp symbol))
         (cons :package (symbol-package symbol))
         (cons :type :variable)
-	;; TODO: fix me
-	;;(cons :source (swank/backend:find-source-location symbol))
-	(cons :source (variable-source-location symbol))
-	))
+        ;; TODO: fix me
+        ;;(cons :source (swank/backend:find-source-location symbol))
+        (cons :source (variable-source-location symbol))
+        ))
 
 (defun find-superclasses (class)
   (labels ((f (classes found)
@@ -280,7 +288,7 @@ the CADR of the list."
               for symbol = (specialise->symbol v)
               when (and (not (member symbol ignored))
                         (or include-internal
-			    (symbol-external-p symbol (symbol-package (class-name class)))))
+                            (symbol-external-p symbol (symbol-package (class-name class)))))
                 collect (list (cons :name symbol) (cons :documentation (documentation symbol 'function))))
             #'string< :key (alexandria:compose #'princ-to-string #'assoc-name)))))
 
@@ -339,8 +347,8 @@ the CADR of the list."
   (flet ((load-slot (slot)
            (list (cons :name (string (closer-mop:slot-definition-name slot)))
                  (cons :documentation (swank-mop:slot-definition-documentation slot))
-		 (when (swank-mop:slot-definition-documentation slot)
-		   (cons :parsed-documentation (parse-docstring (swank-mop:slot-definition-documentation slot) nil :package (symbol-package (class-name class)))))
+                 (when (swank-mop:slot-definition-documentation slot)
+                   (cons :parsed-documentation (parse-docstring (swank-mop:slot-definition-documentation slot) nil :package (symbol-package (class-name class)))))
                  ;; The LIST call below is because the accessor lookup is wrapped
                  ;; in a FOR statement in the template.
                  (cons :accessors (let ((accessor-list (accessor-properties class slot)))
@@ -357,7 +365,7 @@ the CADR of the list."
           (unless shallow (cons :class-precedence-list (mapcar 'class-name (find-superclasses cl))))
           (unless shallow (cons :direct-superclasses (mapcar 'class-name (closer-mop:class-direct-superclasses cl))))
           (unless shallow (cons :direct-subclasses (mapcar 'class-name (closer-mop:class-direct-subclasses cl))))
-	  (cons :source (swank/backend:find-source-location cl))
+          (cons :source (swank/backend:find-source-location cl))
           (cons :package (symbol-package class-name))
           (cons :type :class))))
 
@@ -425,7 +433,7 @@ the CADR of the list."
   "Takes a LAMBDA-LIST and returns the list of all the argument names."
   (loop for symbol in (alexandria:flatten lambda-list)
         when (and (symbolp symbol)
-		  (not (char-equal (aref (symbol-name symbol) 0) #\&))) ;; special argument
+                  (not (char-equal (aref (symbol-name symbol) 0) #\&))) ;; special argument
           collect symbol))
 
 ;; (list-lambda-list-args '(foo))
@@ -467,47 +475,47 @@ PACKAGE: the package to use to read the docstring symbols.
     (concat-rich-text
      (loop for word in words
            collect (cond
-		     ((and ignore
-			   (funcall ignore word))
-		      ;; don't parse as special
-		      word)
-		     ((eql (aref word 0) #\:)
+                     ((and ignore
+                           (funcall ignore word))
+                      ;; don't parse as special
+                      word)
+                     ((eql (aref word 0) #\:)
                       (list :key word))
                      ((member (string-upcase word) (mapcar 'symbol-name bound-args) :test string-test)
                       (list :arg word (aand (find-symbol (string-upcase word) package)
-					    (aand (find-class it nil)
-						  :class))))
-		     ((and (position #\: word) ;; could be a qualified symbol
-			   (ignore-errors (read-from-string word)))
-		      (let ((symbol (let ((*package* package)) (read-from-string word))))
-			(cond
-			  ((ignore-errors (fboundp symbol))
-			   (list :fn word symbol))
-			  ((ignore-errors (boundp symbol))
-			   (list :var word symbol))
-			  (t ;; I don't know what this is
-			   word))))		  
+                                            (aand (find-class it nil)
+                                                  :class))))
+                     ((and (position #\: word) ;; could be a qualified symbol
+                           (ignore-errors (read-from-string word)))
+                      (let ((symbol (let ((*package* package)) (read-from-string word))))
+                        (cond
+                          ((ignore-errors (fboundp symbol))
+                           (list :fn word symbol))
+                          ((ignore-errors (boundp symbol))
+                           (list :var word symbol))
+                          (t ;; I don't know what this is
+                           word))))
                      ((aand
-		       (find-symbol word package)
-		       (fboundp it))
+                       (find-symbol word package)
+                       (fboundp it))
                       (list :fn word (find-symbol word package)))
-		     ((aand
-		       (find-symbol word package)
-		       (find-class it nil))
-		      (list :class word (find-symbol word package)))
+                     ((aand
+                       (find-symbol word package)
+                       (find-class it nil))
+                      (list :class word (find-symbol word package)))
                      ((aand (find-symbol word package)
-			    (boundp it))
+                            (boundp it))
                       (list :var word (find-symbol word package)))
-		     ((quoted-symbol-p word)
-		      (let ((symbol (find-symbol (quoted-symbol-name word) package)))
-			(cond
-			  ((member (symbol-name symbol) (mapcar 'symbol-name bound-args) :test string-test)
-			   (list :arg word symbol))
-			  ((fboundp symbol) (list :fn word symbol))
-			  ((boundp symbol) (list :var word symbol))
-			  ((find-class symbol nil) (list :class word symbol))
-			  (t ;; I don't know what this is
-			   word))))
+                     ((quoted-symbol-p word)
+                      (let ((symbol (find-symbol (quoted-symbol-name word) package)))
+                        (cond
+                          ((member (symbol-name symbol) (mapcar 'symbol-name bound-args) :test string-test)
+                           (list :arg word symbol))
+                          ((fboundp symbol) (list :fn word symbol))
+                          ((boundp symbol) (list :var word symbol))
+                          ((find-class symbol nil) (list :class word symbol))
+                          (t ;; I don't know what this is
+                           word))))
                      (t word))))))
 
 ;; (parse-docstring "asdf" nil)
@@ -523,7 +531,7 @@ PACKAGE: the package to use to read the docstring symbols.
    (cadr
     (or (find :file (cdr location)
               :key 'car)
-	(find :buffer (cdr location)
+        (find :buffer (cdr location)
               :key 'car)
         (find :buffer-and-file (cdr location)
               :key 'car)
