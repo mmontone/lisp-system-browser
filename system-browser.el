@@ -116,7 +116,7 @@
     (push '(:eval (propertize "[Quit]"
                               'local-map quit-system-browser))
           mode-line-format)
-    
+
     (system-browser-mode)
     ))
 
@@ -152,7 +152,13 @@
                      'help-echo "Browse category")
       (newline))
     (setq buffer-read-only t))
-  (wlf:select sb:wm 'categories))
+  (wlf:select sb:wm 'categories)
+
+  (let* ((package-properties (slime-eval `(esb::serialize-for-emacs (def-properties:package-properties ,package t))))
+	 (source (find :source package-properties :key 'car))
+	 (file (cadr (find :file (remove-if-not 'listp source) :key 'car)))
+	 (position (cadr (find :position (remove-if-not 'listp source) :key 'car))))
+    (sb:set-definition-buffer-file file position)))
 
 (defun sb:update-definitions-buffer (package category)
   (with-current-buffer "*sb-definitions*"
@@ -171,6 +177,22 @@
     (setq buffer-read-only t))
   (wlf:select sb:wm 'definitions))
 
+(defun sb:set-definition-buffer-file (file &optional position)
+  (with-current-buffer "*sb-definition*"
+    (wlf:select sb:wm 'definition)
+
+    (erase-buffer)
+    (insert-file-contents file)
+    ;; Assign file to buffer so changes in definition buffer can be saved
+    (setq buffer-file-name file)
+    (setq default-directory file)
+    ;; For some reason, sometimes definition buffer sets to read-only.
+    ;; The following prevents that:
+    (setq buffer-read-only nil)
+    (when position
+      (goto-char position)
+      (recenter-top-bottom 0))))
+
 (defun sb:update-definition-buffer (package category definition)
   (let ((definition-type
           (cond
@@ -184,24 +206,14 @@
            ((string= category "Variables") 'def-properties:variable-properties)
            ((string= category "Macros") 'def-properties:macro-properties)
            ((string= category "Classes") 'def-properties:class-properties))))
-    (let ((definition-properties (slime-eval `(esb::serialize-for-emacs (,definition-function ',(make-symbol (concat package "::" definition)))))))
+    (let* ((definition-properties (slime-eval `(esb::serialize-for-emacs (,definition-function ',(make-symbol (concat package "::" definition))))))
+           (source (find :source definition-properties :key 'car))
+           (file (cadr (find :file (remove-if-not 'listp source) :key 'car)))
+           (position (cadr (find :position (remove-if-not 'listp source) :key 'car))))
       (with-current-buffer "*sb-definition*"
-	(wlf:select sb:wm 'definition)
-	(let ((source (find :source definition-properties :key 'car)))
-          (let ((file (cadr (find :file (remove-if-not 'listp source) :key 'car)))
-                (position (cadr (find :position (remove-if-not 'listp source) :key 'car))))
-	    (switch-to-buffer "*sb-definition*" nil t)
-	    (erase-buffer)
-            (insert-file-contents file)
-	    ;; Assign file to buffer so changes in definition buffer can be saved
-            (setq buffer-file-name file)
-	    (setq default-directory file)
-            ;; For some reason, sometimes definition buffer sets to read-only.
-            ;; The following prevents that:
-            (setq buffer-read-only nil)
-            (goto-char position)
-            (recenter-top-bottom 0)	    
-            ))))))
+        (wlf:select sb:wm 'definition)
+        (switch-to-buffer "*sb-definition*" nil t)
+        (sb:set-definition-buffer-file file position)))))
 
 (defun sb:create-documentation-buffer (package category definition)
   (let ((definition-type
@@ -275,13 +287,13 @@
 
   (when (not sb:show-documentation-buffer)
     (wlf:hide sb:wm 'documentation))
-  
-   ;; Mark selection windows as dedicated
-   (let ((winfo-list (wlf:wset-winfo-list sb:wm)))
-     (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'packages winfo-list)) t)
-     (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'categories winfo-list)) t)
-     (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'definitions winfo-list)) t))
-  
+
+  ;; Mark selection windows as dedicated
+  (let ((winfo-list (wlf:wset-winfo-list sb:wm)))
+    (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'packages winfo-list)) t)
+    (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'categories winfo-list)) t)
+    (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'definitions winfo-list)) t))
+
   (sb:update-packages-buffer)
   (wlf:select sb:wm 'packages))
 

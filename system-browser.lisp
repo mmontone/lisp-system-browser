@@ -33,7 +33,7 @@
     ;; arglist is conflictive for slime protocol. do not use.
     (setf (cdr (assoc :arglist info)) nil))
   (push (cons :symbol (cdr (assoc :name info))) info)
-  (setf (cdr (assoc :name info)) (symbol-name (cdr (assoc :name info))))
+  (setf (cdr (assoc :name info)) (princ-to-string (cdr (assoc :name info))))
   info)
 
 (defun emacs-package-definitions (package-name category)
