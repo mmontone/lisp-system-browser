@@ -263,8 +263,16 @@
            (:name documentation
                   :buffer "*sb-documentation*")
            )))
+
   (when (not sb:show-documentation-buffer)
     (wlf:hide sb:wm 'documentation))
+  
+   ;; Mark selection windows as dedicated
+   (let ((winfo-list (wlf:wset-winfo-list sb:wm)))
+     (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'packages winfo-list)) t)
+     (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'categories winfo-list)) t)
+     (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'definitions winfo-list)) t))
+  
   (sb:update-packages-buffer)
   (wlf:select sb:wm 'packages))
 
