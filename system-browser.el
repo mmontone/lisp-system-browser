@@ -120,10 +120,10 @@
 				 (cdr mode-line-format)))
 
     ;; Buttons in mode-line
-    (push '(:eval (propertize "[Toggle docs] "
+    (push '(:eval (propertize "[toggle docs] "
                               'local-map sb:mode-line-toggle-docs-map))
           mode-line-format)
-    (push '(:eval (propertize "[Quit] "
+    (push '(:eval (propertize "[quit] "
                               'local-map quit-system-browser))
           mode-line-format)
 
@@ -226,16 +226,16 @@
 (defun sb:update-definition-buffer (package category definition)
   (let ((definition-type
           (cond
-           ((string= category "Functions") :function)
-           ((string= category "Variables") :variable)
-           ((string= category "Macros") :macro)
-           ((string= category "Classes") :class)))
+           ((string= category "functions") :function)
+           ((string= category "variables") :variable)
+           ((string= category "macros") :macro)
+           ((string= category "classes") :class)))
         (definition-function
           (cond
-           ((string= category "Functions") 'def-properties:function-properties)
-           ((string= category "Variables") 'def-properties:variable-properties)
-           ((string= category "Macros") 'def-properties:macro-properties)
-           ((string= category "Classes") 'def-properties:class-properties))))
+           ((string= category "functions") 'def-properties:function-properties)
+           ((string= category "variables") 'def-properties:variable-properties)
+           ((string= category "macros") 'def-properties:macro-properties)
+           ((string= category "classes") 'def-properties:class-properties))))
     (let* ((definition-properties (slime-eval `(esb::serialize-for-emacs (,definition-function ',(make-symbol (concat package "::" definition))))))
            (source (find :source definition-properties :key 'car))
            (file (cadr (find :file (remove-if-not 'listp source) :key 'car)))
@@ -256,30 +256,30 @@
 (defun sb:update-documentation-buffer (package category definition)
   (let ((definition-type
           (cond
-           ((string= category "Functions") :function)
-           ((string= category "Variables") :variable)
-           ((string= category "Macros") :macro)
-           ((string= category "Classes") :class)))
+           ((string= category "functions") :function)
+           ((string= category "variables") :variable)
+           ((string= category "macros") :macro)
+           ((string= category "classes") :class)))
         (definition-function
           (cond
-           ((string= category "Functions") 'def-properties:function-properties)
-           ((string= category "Variables") 'def-properties:variable-properties)
-           ((string= category "Macros") 'def-properties:macro-properties)
-           ((string= category "Classes") 'def-properties:class-properties))))
+           ((string= category "functions") 'def-properties:function-properties)
+           ((string= category "variables") 'def-properties:variable-properties)
+           ((string= category "macros") 'def-properties:macro-properties)
+           ((string= category "classes") 'def-properties:class-properties))))
     (let* ((definition-properties (slime-eval `(esb::serialize-for-emacs (,definition-function ',(make-symbol (concat package "::" definition))))))
 	   (documentation (cdr (assoc :documentation definition-properties))))
       (sb:set-documentation-buffer-contents (or documentation "")))))
 
 (defmethod sb:list-categories ((system sb:common-lisp-system) package)
-  '("Variables" "Macros" "Functions" "Classes" "Generic Functions"))
+  '("variables" "macros" "functions" "classes" "generic functions"))
 
 (defmethod sb:list-definitions ((system sb:common-lisp-system) package category)
   (let ((definition-type
           (cond
-           ((string= category "Functions") :function)
-           ((string= category "Variables") :variable)
-           ((string= category "Macros") :macro)
-           ((string= category "Classes") :class))))
+           ((string= category "functions") :function)
+           ((string= category "variables") :variable)
+           ((string= category "macros") :macro)
+           ((string= category "classes") :class))))
 
     (slime-eval `(esb::list-definitions ,package ,definition-type))))
 
