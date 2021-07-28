@@ -177,20 +177,21 @@
            ((string= category "Classes") 'def-properties:class-properties))))
     (let ((definition-properties (slime-eval `(esb::serialize-for-emacs (,definition-function ',(make-symbol (concat package "::" definition)))))))
       (with-current-buffer "*sb-definition*"
-        (erase-buffer)
-        (let ((source (find :source definition-properties :key 'car)))
+	(wlf:select sb:wm 'definition)
+	(let ((source (find :source definition-properties :key 'car)))
           (let ((file (cadr (find :file (remove-if-not 'listp source) :key 'car)))
                 (position (cadr (find :position (remove-if-not 'listp source) :key 'car))))
+	    (switch-to-buffer "*sb-definition*" nil t)
+	    (erase-buffer)
             (insert-file-contents file)
-            (wlf:select sb:wm 'definition)
-            ;; Assign file to buffer so changes in definition buffer can be saved
+	    ;; Assign file to buffer so changes in definition buffer can be saved
             (setq buffer-file-name file)
 	    (setq default-directory file)
             ;; For some reason, sometimes definition buffer sets to read-only.
             ;; The following prevents that:
             (setq buffer-read-only nil)
             (goto-char position)
-            (recenter-top-bottom 0)
+            (recenter-top-bottom 0)	    
             ))))))
 
 (defun sb:create-documentation-buffer (package category definition)
