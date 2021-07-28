@@ -124,43 +124,49 @@
   (setq sb:documentation-buffer (get-buffer-create "*sb-documentation*")))
 
 (defun sb:update-packages-buffer ()
-  (with-current-buffer "*sb-packages*"
-    (setq buffer-read-only nil)
-    (erase-buffer)
-    (dolist (package-name (sb:list-packages sb:current-browser-system))
-      (insert-button package-name
-                     'action (lambda (btn)
-                               (message package-name)
-                               (sb:update-categories-buffer package-name))
-                     'follow-link t
-                     'help-echo "Browse package")
-      (newline))
-    (setq buffer-read-only t))
-  (wlf:select sb:wm 'packages))
+  (let ((packages (sb:list-packages sb:current-browser-system)))
+    (with-current-buffer "*sb-packages*"
+      (setq buffer-read-only nil)
+      (erase-buffer)
+      (dolist (package-name packages)
+	(insert-button package-name
+                       'action (lambda (btn)
+				 (message package-name)
+				 (sb:update-categories-buffer package-name))
+                       'follow-link t
+                       'help-echo "Browse package")
+	(newline))
+      (setq buffer-read-only t))
+    (wlf:select sb:wm 'packages)
+    (sb:update-categories-buffer (first packages))))
 
 (defun sb:update-categories-buffer (package)
-  (with-current-buffer "*sb-categories*"
-    (setq buffer-read-only nil)
-    (erase-buffer)
-    (insert package)
-    (newline)
-    (dolist (category (sb:list-categories sb:current-browser-system package))
-      (insert-button category
-                     'action (lambda (btn)
-                               (sb:update-definitions-buffer package category))
-                     'follow-link t
-                     'help-echo "Browse category")
-      (newline))
-    (setq buffer-read-only t))
-  (wlf:select sb:wm 'categories)
+  (let ((categories (sb:list-categories sb:current-browser-system package)))
+    (with-current-buffer "*sb-categories*"
+      (setq buffer-read-only nil)
+      (erase-buffer)
+      (insert package)
+      (newline)
+      (dolist (category categories)
+	(insert-button category
+		       'action (lambda (btn)
+				 (sb:update-definitions-buffer package category))
+		       'follow-link t
+		       'help-echo "Browse category")
+	(newline))
+      (setq buffer-read-only t))
+    (wlf:select sb:wm 'categories)
 
-  (let* ((package-properties (slime-eval `(esb::serialize-for-emacs (def-properties:package-properties ,package t))))
-	 (source (find :source package-properties :key 'car))
-	 (file (cadr (find :file (remove-if-not 'listp source) :key 'car)))
-	 (position (cadr (find :position (remove-if-not 'listp source) :key 'car)))
-	 (documentation (cdr (assoc :documentation package-properties))))
-    (sb:set-definition-buffer-file file position)
-    (sb:set-documentation-buffer-contents (or documentation ""))))
+    (let* ((package-properties (slime-eval `(esb::serialize-for-emacs (def-properties:package-properties ,package t))))
+	   (source (find :source package-properties :key 'car))
+	   (file (cadr (find :file (remove-if-not 'listp source) :key 'car)))
+	   (position (cadr (find :position (remove-if-not 'listp source) :key 'car)))
+	   (documentation (cdr (assoc :documentation package-properties))))
+      (sb:set-definition-buffer-file file position)
+      (sb:set-documentation-buffer-contents (or documentation "")))
+    
+    (sb:update-definitions-buffer package (first categories))
+    ))
 
 (defun sb:update-definitions-buffer (package category)
   (with-current-buffer "*sb-definitions*"
