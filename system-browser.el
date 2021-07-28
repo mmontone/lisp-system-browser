@@ -65,6 +65,12 @@
   :group 'system-browser
   :tag "Downcase definition names")
 
+(defface sb:definition-list-item
+  '((t :foreground "black"
+       :height 0.9))
+  "Face for definitions list items"
+  :group 'system-browser-faces)
+
 (defun sb:setup-list-buffer ()
   ;; TODO: use a minor mode for list buffer to set this
   (apply 'set-face-attribute
@@ -117,7 +123,7 @@
 
     ;; Show visited file in mode-line
     (setq mode-line-format (cons '(:eval (file-name-nondirectory buffer-file-name))
-				 (cdr mode-line-format)))
+                                 (cdr mode-line-format)))
 
     ;; Buttons in mode-line
     (push '(:eval (propertize "[toggle docs] "
@@ -139,15 +145,16 @@
       (setq buffer-read-only nil)
       (erase-buffer)
       (dolist (package-name packages)
-	(insert-button (if sb:downcase-definition-names
-			   (downcase package-name)
-			 package-name)
+        (insert-button (if sb:downcase-definition-names
+                           (downcase package-name)
+                         package-name)
                        'action (lambda (btn)
-				 (message package-name)
-				 (sb:update-categories-buffer package-name))
+                                 (message package-name)
+                                 (sb:update-categories-buffer package-name))
+                       'face 'sb:definition-list-item
                        'follow-link t
                        'help-echo "Browse package")
-	(newline))
+        (newline))
       (setq buffer-read-only t))
     (wlf:select sb:wm 'packages)
     (sb:update-categories-buffer (first packages))))
@@ -160,23 +167,24 @@
       (insert package)
       (newline)
       (dolist (category categories)
-	(insert-button category
-		       'action (lambda (btn)
-				 (sb:update-definitions-buffer package category))
-		       'follow-link t
-		       'help-echo "Browse category")
-	(newline))
+        (insert-button category
+                       'action (lambda (btn)
+                                 (sb:update-definitions-buffer package category))
+                       'follow-link t
+		       'face 'sb:definition-list-item
+                       'help-echo "Browse category")
+        (newline))
       (setq buffer-read-only t))
     (wlf:select sb:wm 'categories)
 
     (let* ((package-properties (slime-eval `(esb::serialize-for-emacs (def-properties:package-properties ,package t))))
-	   (source (find :source package-properties :key 'car))
-	   (file (cadr (find :file (remove-if-not 'listp source) :key 'car)))
-	   (position (cadr (find :position (remove-if-not 'listp source) :key 'car)))
-	   (documentation (cdr (assoc :documentation package-properties))))
+           (source (find :source package-properties :key 'car))
+           (file (cadr (find :file (remove-if-not 'listp source) :key 'car)))
+           (position (cadr (find :position (remove-if-not 'listp source) :key 'car)))
+           (documentation (cdr (assoc :documentation package-properties))))
       (sb:set-definition-buffer-file file position)
       (sb:set-documentation-buffer-contents (or documentation "")))
-    
+
     (sb:update-definitions-buffer package (first categories))
     ))
 
@@ -188,11 +196,12 @@
     (newline)
     (dolist (definition (sb:list-definitions sb:current-browser-system package category))
       (insert-button (if sb:downcase-definition-names
-			 (downcase definition)
-		       definition)
+                         (downcase definition)
+                       definition)
                      'action (lambda (btn)
                                (sb:update-definition-buffer package category definition)
                                (sb:update-documentation-buffer package category definition))
+		     'face 'sb:definition-list-item
                      'follow-link t
                      'help-echo "Browse definition")
       (newline))
@@ -205,9 +214,9 @@
 
       ;; Check for unsaved changes in definition buffer
       (when (buffer-modified-p)
-	(when (not (yes-or-no-p "System Browser definition buffer modified. Discard changes? "))
-	  (return-from func)))
-  
+        (when (not (yes-or-no-p "System Browser definition buffer modified. Discard changes? "))
+          (return-from func)))
+
       (wlf:select sb:wm 'definition)
 
       (erase-buffer)
@@ -220,8 +229,8 @@
       (setq buffer-read-only nil)
       (set-buffer-modified-p nil)
       (when position
-	(goto-char position)
-	(recenter-top-bottom 0)))))
+        (goto-char position)
+        (recenter-top-bottom 0)))))
 
 (defun sb:update-definition-buffer (package category definition)
   (let ((definition-type
@@ -267,7 +276,7 @@
            ((string= category "macros") 'def-properties:macro-properties)
            ((string= category "classes") 'def-properties:class-properties))))
     (let* ((definition-properties (slime-eval `(esb::serialize-for-emacs (,definition-function ',(make-symbol (concat package "::" definition))))))
-	   (documentation (cdr (assoc :documentation definition-properties))))
+           (documentation (cdr (assoc :documentation definition-properties))))
       (sb:set-documentation-buffer-contents (or documentation "")))))
 
 (defmethod sb:list-categories ((system sb:common-lisp-system) package)
