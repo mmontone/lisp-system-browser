@@ -56,13 +56,13 @@
 (defun sb:setup-list-buffer ()
   ;; TODO: use a minor mode for list buffer to set this
   (apply 'set-face-attribute
-	 'header-line nil
-	 (alist-to-plist (face-all-attributes 'mode-line)))
-		      
+         'header-line nil
+         (alist-to-plist (face-all-attributes 'mode-line)))
+
   (setq header-line-format mode-line-format)
   (setq mode-line-format nil))
 
-(defvar-local sb:system-browser-buffer-type nil) 
+(defvar-local sb:system-browser-buffer-type nil)
 
 (defun sb:initialize-packages-buffer ()
   (setq sb:packages-buffer (get-buffer-create "*sb-packages*"))
@@ -89,8 +89,21 @@
       (setq header-line-format (sb:definitions-buffer-mode-line-format sb:current-browser-system)))
     (setq sb:system-browser-buffer-type 'definitions)))
 
+(defvar sb:mode-line-toggle-docs-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line mouse-1]
+      (lambda (_e)
+        (interactive "e")
+        (wlf:toggle sb:wm 'documentation)))
+    map))
+
 (defun sb:initialize-definition-buffer ()
-  (setq sb:definition-buffer (get-buffer-create "*sb-definition*")))
+  (setq sb:definition-buffer (get-buffer-create "*sb-definition*"))
+  (with-current-buffer "*sb-definition*"
+    (lisp-mode)
+    (push '(:eval (propertize "[Toggle docs]"
+                              'local-map sb:mode-line-toggle-docs-map))
+          mode-line-format)))
 
 (defun sb:initialize-documentation-buffer ()
   (setq sb:documentation-buffer (get-buffer-create "*sb-documentation*")))
@@ -112,7 +125,7 @@
 
 (defun sb:create-categories-buffer (package)
   (with-current-buffer "*sb-categories*"
-    (setq buffer-read-only nil)    
+    (setq buffer-read-only nil)
     (erase-buffer)
     (insert package)
     (newline)
@@ -135,8 +148,8 @@
     (dolist (definition (sb:list-definitions sb:current-browser-system package category))
       (insert-button definition
                      'action (lambda (btn)
-			       (sb:create-definition-buffer package category definition)
-			       (sb:create-documentation-buffer package category definition))
+                               (sb:create-definition-buffer package category definition)
+                               (sb:create-documentation-buffer package category definition))
                      'follow-link t
                      'help-echo "Browse definition")
       (newline))
@@ -163,7 +176,6 @@
           (let ((file (cadr (find :file (remove-if-not 'listp source) :key 'car)))
                 (position (cadr (find :position (remove-if-not 'listp source) :key 'car))))
             (insert-file-contents file)
-            (lisp-mode)
             (wlf:select sb:wm 'definition)
             ;; Assign file to buffer so changes in definition buffer can be saved
             (setq buffer-file-name file)
@@ -171,8 +183,8 @@
             ;; The following prevents that:
             (setq buffer-read-only nil)
             (goto-char position)
-	    (recenter-top-bottom 0)
-	    ))))))
+            (recenter-top-bottom 0)
+            ))))))
 
 (defun sb:create-documentation-buffer (package category definition)
   (let ((definition-type
@@ -189,14 +201,14 @@
            ((string= category "Classes") 'def-properties:class-properties))))
     (let ((definition-properties (slime-eval `(esb::serialize-for-emacs (,definition-function ',(make-symbol (concat package "::" definition)))))))
       (with-current-buffer "*sb-documentation*"
-	(setq buffer-read-only nil)
+        (setq buffer-read-only nil)
         (erase-buffer)
-	;;(insert (prin1-to-string definition-properties))
-	(let ((documentation (cdr (assoc :documentation definition-properties))))
-	  (when documentation
-	    (insert documentation)))	
-	(goto-char 0)
-	(setq buffer-read-only t)))))
+        ;;(insert (prin1-to-string definition-properties))
+        (let ((documentation (cdr (assoc :documentation definition-properties))))
+          (when documentation
+            (insert documentation)))
+        (goto-char 0)
+        (setq buffer-read-only t)))))
 
 (defmethod sb:list-categories ((system sb:common-lisp-system) package)
   '("Variables" "Macros" "Functions" "Classes" "Generic Functions"))
@@ -221,7 +233,7 @@
   (sb:initialize-definitions-buffer)
   (sb:initialize-definition-buffer)
   (sb:initialize-documentation-buffer)
-  
+
   (setq sb:wm
         (wlf:layout
          '(| (:left-size-ratio 0.20)
@@ -230,8 +242,8 @@
                 (- categories
                    definitions))
              (- (:left-size-ratio 0.66)
-		definition
-		documentation))
+                definition
+                documentation))
          '((:name packages
                   :buffer "*sb-packages*")
            (:name categories
@@ -240,8 +252,8 @@
                   :buffer "*sb-definitions*")
            (:name definition
                   :buffer "*sb-definition*")
-	   (:name documentation
-		  :buffer "*sb-documentation*")
+           (:name documentation
+                  :buffer "*sb-documentation*")
            )))
   (sb:create-packages-buffer)
   (wlf:select sb:wm 'packages))
@@ -268,3 +280,7 @@
   (interactive (list (sb:read-name)))
 
   (sb:goto name))
+
+(defun system-browser-toggle-docs ()
+  (interactive)
+  (wlf:toggle sb:wm 'documentation))
