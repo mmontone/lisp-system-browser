@@ -53,6 +53,12 @@
 (defgroup system-browser nil
   "System browser configuration")
 
+(defcustom sb:show-documentation-buffer nil
+  "Show documentation buffer in system browser"
+  :type 'boolean
+  :group 'system-browser
+  :tag "Show documentation buffer")
+
 (defun sb:setup-list-buffer ()
   ;; TODO: use a minor mode for list buffer to set this
   (apply 'set-face-attribute
@@ -255,6 +261,8 @@
            (:name documentation
                   :buffer "*sb-documentation*")
            )))
+  (when (not sb:show-documentation-buffer)
+    (wlf:hide sb:wm 'documentation))
   (sb:create-packages-buffer)
   (wlf:select sb:wm 'packages))
 
