@@ -157,8 +157,10 @@
   (let* ((package-properties (slime-eval `(esb::serialize-for-emacs (def-properties:package-properties ,package t))))
 	 (source (find :source package-properties :key 'car))
 	 (file (cadr (find :file (remove-if-not 'listp source) :key 'car)))
-	 (position (cadr (find :position (remove-if-not 'listp source) :key 'car))))
-    (sb:set-definition-buffer-file file position)))
+	 (position (cadr (find :position (remove-if-not 'listp source) :key 'car)))
+	 (documentation (cdr (assoc :documentation package-properties))))
+    (sb:set-definition-buffer-file file position)
+    (sb:set-documentation-buffer-contents (or documentation ""))))
 
 (defun sb:update-definitions-buffer (package category)
   (with-current-buffer "*sb-definitions*"
@@ -170,7 +172,7 @@
       (insert-button definition
                      'action (lambda (btn)
                                (sb:update-definition-buffer package category definition)
-                               (sb:create-documentation-buffer package category definition))
+                               (sb:update-documentation-buffer package category definition))
                      'follow-link t
                      'help-echo "Browse definition")
       (newline))
@@ -215,7 +217,15 @@
         (switch-to-buffer "*sb-definition*" nil t)
         (sb:set-definition-buffer-file file position)))))
 
-(defun sb:create-documentation-buffer (package category definition)
+(defun sb:set-documentation-buffer-contents (contents)
+  (with-current-buffer "*sb-documentation*"
+    (setq buffer-read-only nil)
+    (erase-buffer)
+    (insert contents)
+    (goto-char 0)
+    (setq buffer-read-only t)))
+
+(defun sb:update-documentation-buffer (package category definition)
   (let ((definition-type
           (cond
            ((string= category "Functions") :function)
@@ -228,16 +238,9 @@
            ((string= category "Variables") 'def-properties:variable-properties)
            ((string= category "Macros") 'def-properties:macro-properties)
            ((string= category "Classes") 'def-properties:class-properties))))
-    (let ((definition-properties (slime-eval `(esb::serialize-for-emacs (,definition-function ',(make-symbol (concat package "::" definition)))))))
-      (with-current-buffer "*sb-documentation*"
-        (setq buffer-read-only nil)
-        (erase-buffer)
-        ;;(insert (prin1-to-string definition-properties))
-        (let ((documentation (cdr (assoc :documentation definition-properties))))
-          (when documentation
-            (insert documentation)))
-        (goto-char 0)
-        (setq buffer-read-only t)))))
+    (let* ((definition-properties (slime-eval `(esb::serialize-for-emacs (,definition-function ',(make-symbol (concat package "::" definition))))))
+	   (documentation (cdr (assoc :documentation definition-properties))))
+      (sb:set-documentation-buffer-contents (or documentation "")))))
 
 (defmethod sb:list-categories ((system sb:common-lisp-system) package)
   '("Variables" "Macros" "Functions" "Classes" "Generic Functions"))
