@@ -201,6 +201,7 @@
     ;; For some reason, sometimes definition buffer sets to read-only.
     ;; The following prevents that:
     (setq buffer-read-only nil)
+    (set-buffer-modified-p nil)
     (when position
       (goto-char position)
       (recenter-top-bottom 0))))
