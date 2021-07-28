@@ -54,10 +54,16 @@
   "System browser configuration")
 
 (defcustom sb:show-documentation-buffer nil
-  "Show documentation buffer in system browser"
+  "Show documentation buffer in system browser."
   :type 'boolean
   :group 'system-browser
   :tag "Show documentation buffer")
+
+(defcustom sb:downcase-definition-names t
+  "Show definition names in lowercase."
+  :type 'boolean
+  :group 'system-browser
+  :tag "Downcase definition names")
 
 (defun sb:setup-list-buffer ()
   ;; TODO: use a minor mode for list buffer to set this
@@ -133,7 +139,9 @@
       (setq buffer-read-only nil)
       (erase-buffer)
       (dolist (package-name packages)
-	(insert-button package-name
+	(insert-button (if sb:downcase-definition-names
+			   (downcase package-name)
+			 package-name)
                        'action (lambda (btn)
 				 (message package-name)
 				 (sb:update-categories-buffer package-name))
@@ -179,7 +187,9 @@
     (insert category)
     (newline)
     (dolist (definition (sb:list-definitions sb:current-browser-system package category))
-      (insert-button definition
+      (insert-button (if sb:downcase-definition-names
+			 (downcase definition)
+		       definition)
                      'action (lambda (btn)
                                (sb:update-definition-buffer package category definition)
                                (sb:update-documentation-buffer package category definition))
