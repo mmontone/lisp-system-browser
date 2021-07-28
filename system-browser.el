@@ -342,5 +342,7 @@
   '("System Browser"
     ["Toggle documentation panel" system-browser-toggle-docs
      :help "Toggle documentation panel"]
+    ["Refresh browser" system-browser
+     :help "Refresh the system browser"]
     ["Quit" quit-system-browser
      :help "Quit System Browser"]))
