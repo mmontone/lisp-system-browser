@@ -64,9 +64,10 @@
   (apply 'set-face-attribute
          'header-line nil
          (alist-to-plist (face-all-attributes 'mode-line)))
-
   (setq header-line-format mode-line-format)
-  (setq mode-line-format nil))
+  (setq mode-line-format nil)
+
+  (system-browser-mode))
 
 (defvar-local sb:system-browser-buffer-type nil)
 
@@ -107,9 +108,17 @@
   (setq sb:definition-buffer (get-buffer-create "*sb-definition*"))
   (with-current-buffer "*sb-definition*"
     (lisp-mode)
+
+    ;; Buttons in mode-line
     (push '(:eval (propertize "[Toggle docs]"
                               'local-map sb:mode-line-toggle-docs-map))
-          mode-line-format)))
+          mode-line-format)
+    (push '(:eval (propertize "[Quit]"
+                              'local-map quit-system-browser))
+          mode-line-format)
+    
+    (system-browser-mode)
+    ))
 
 (defun sb:initialize-documentation-buffer ()
   (setq sb:documentation-buffer (get-buffer-create "*sb-documentation*")))
@@ -302,3 +311,24 @@
 (defun system-browser-toggle-docs ()
   (interactive)
   (wlf:toggle sb:wm 'documentation))
+
+(defvar system-browser-mode-map
+  (let ((map (make-keymap)))
+    (define-key map "C-q" 'quit-system-browser)
+    map))
+
+(define-minor-mode system-browser-mode
+  "System browser minor mode."
+  :init-value nil
+  :lighter " system-browser"
+  :keymap system-browser-mode-map
+  :group 'system-browser)
+
+(easy-menu-define
+  system-browser-mode-menu system-browser-mode-map
+  "Menu for system-browser"
+  '("System Browser"
+    ["Toggle documentation panel" system-browser-toggle-docs
+     :help "Toggle documentation panel"]
+    ["Quit" quit-system-browser
+     :help "Quit System Browser"]))
