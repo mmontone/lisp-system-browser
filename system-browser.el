@@ -77,9 +77,9 @@
   :group 'system-browser-faces)
 
 (defface sb:mode-line-buttons-face
-  '((((background light)
+  '((((background light))
       :foreground "white"
-      :background "darkblue"))
+      :background "darkblue")
     (((background dark))
      :foreground "white"
      :background "darkblue"))
@@ -87,7 +87,7 @@
   :group 'system-browser-faces)
 
 (defface sb:definitions-list-header-face
-  '((t :inherit bold)))
+  '((t :inherit bold))
   "Face for system-browser definitions list headers"
   :group 'system-browser-faces
   )
@@ -186,8 +186,7 @@
       (setq buffer-read-only nil)
       (erase-buffer)
       (insert (propertize package 'face
-			  ;;'sb:definitions-list-header-face
-			  'bold
+			  'sb:definitions-list-header-face
 			  ))
       (newline)
       (dolist (category categories)
@@ -217,8 +216,7 @@
     (setq buffer-read-only nil)
     (erase-buffer)
     (insert (propertize category 'face
-			'bold
-			;;'sb:definitions-list-header-face
+			'sb:definitions-list-header-face
 			))
     (newline)
     (dolist (definition (sb:list-definitions sb:current-browser-system package category))
