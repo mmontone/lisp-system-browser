@@ -450,8 +450,10 @@
 
 ;;   (esb:goto name))
 
-(defun system-browser-browse-package (name)
-  (interactive))
+(defun system-browser-browse-package (package-name)
+  "Browse a particular package completed from command bar."
+  (interactive (list (slime-read-package-name "Browse package: ")))
+  (esb:select-package package-name))
 
 (defun system-browser-browse-definition (name)
   (interactive))

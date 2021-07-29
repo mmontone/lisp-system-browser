@@ -45,4 +45,6 @@ system-browser-reset-layout   M-x ... RET
    browser's layout.
 system-browser-toggle-docs    M-x ... RET
    Toggle documentation panel in system browser.
+system-browser-browse-package M-x ... RET
+   Browse a particular package completed from command bar.
 ```
