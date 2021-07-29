@@ -78,8 +78,8 @@
 
 (defface sb:mode-line-buttons-face
   '((((background light))
-      :foreground "white"
-      :background "darkblue")
+     :foreground "white"
+     :background "darkblue")
     (((background dark))
      :foreground "white"
      :background "darkblue"))
@@ -147,11 +147,11 @@
     ;; Buttons in mode-line
     (push '(:eval (propertize "[toggle docs] "
                               'local-map sb:mode-line-toggle-docs-map
-			      'face 'sb:mode-line-buttons-face))
+                              'face 'sb:mode-line-buttons-face))
           mode-line-format)
     (push '(:eval (propertize "[quit] "
                               'local-map quit-system-browser
-			      'face 'sb:mode-line-buttons-face))
+                              'face 'sb:mode-line-buttons-face))
           mode-line-format)
 
     (system-browser-mode)
@@ -186,15 +186,15 @@
       (setq buffer-read-only nil)
       (erase-buffer)
       (insert (propertize package 'face
-			  'sb:definitions-list-header-face
-			  ))
+                          'sb:definitions-list-header-face
+                          ))
       (newline)
       (dolist (category categories)
         (insert-button category
                        'action (lambda (btn)
                                  (sb:update-definitions-buffer package category))
                        'follow-link t
-		       'face 'sb:definition-list-item-face
+                       'face 'sb:definition-list-item-face
                        'help-echo "Browse category")
         (newline))
       (setq buffer-read-only t))
@@ -202,22 +202,24 @@
 
     (let* ((package-properties (slime-eval `(esb::serialize-for-emacs (def-properties:package-properties ,package t))))
            (source (find :source package-properties :key 'car))
-           (file (cadr (find :file (remove-if-not 'listp source) :key 'car)))
-           (position (cadr (find :position (remove-if-not 'listp source) :key 'car)))
+           (file (and source (cadr (find :file (remove-if-not 'listp source) :key 'car))))
+           (position (and source (cadr (find :position (remove-if-not 'listp source) :key 'car))))
            (documentation (cdr (assoc :documentation package-properties))))
-      (sb:set-definition-buffer-file file position)
-      (sb:set-documentation-buffer-contents (or documentation "")))
-
-    (sb:update-definitions-buffer package (first categories))
-    ))
+      (if (and file position)
+          (progn
+            (sb:set-definition-buffer-file file position)
+            (sb:set-documentation-buffer-contents (or documentation ""))
+            (sb:update-definitions-buffer package (first categories)))
+        (message "Definition source not found.")
+        ))))
 
 (defun sb:update-definitions-buffer (package category)
   (with-current-buffer sb:definitions-buffer
     (setq buffer-read-only nil)
     (erase-buffer)
     (insert (propertize category 'face
-			'sb:definitions-list-header-face
-			))
+                        'sb:definitions-list-header-face
+                        ))
     (newline)
     (dolist (definition (sb:list-definitions sb:current-browser-system package category))
       (insert-button (if sb:downcase-definition-names
@@ -226,7 +228,7 @@
                      'action (lambda (btn)
                                (sb:update-definition-buffer package category definition)
                                (sb:update-documentation-buffer package category definition))
-		     'face 'sb:definition-list-item-face
+                     'face 'sb:definition-list-item-face
                      'follow-link t
                      'help-echo "Browse definition")
       (newline))
@@ -264,26 +266,28 @@
            ((string= category "variables") :variable)
            ((string= category "macros") :macro)
            ((string= category "classes") :class)
-	   ((string= category "generic function") :generic-function)))
+           ((string= category "generic function") :generic-function)))
         (definition-function
           (cond
            ((string= category "functions") 'def-properties:function-properties)
            ((string= category "variables") 'def-properties:variable-properties)
            ((string= category "macros") 'def-properties:macro-properties)
            ((string= category "classes") 'def-properties:class-properties)
-	   ((string= category "generic function") 'def-properties:generic-function-properties)
-	   )))
+           ((string= category "generic function") 'def-properties:generic-function-properties)
+           )))
     (let* ((definition-properties (slime-eval `(esb::serialize-for-emacs (,definition-function ',(make-symbol (concat package "::" definition))))))
            (source (find :source definition-properties :key 'car))
-           (file (cadr (find :file (remove-if-not 'listp source) :key 'car)))
-           (position (cadr (find :position (remove-if-not 'listp source) :key 'car))))
-      (with-current-buffer "*sb-definition*"
-        (wlf:select sb:wm 'definition)
-        (switch-to-buffer "*sb-definition*" nil t)
-        (sb:set-definition-buffer-file file position)))))
+           (file (and source (cadr (find :file (remove-if-not 'listp source) :key 'car))))
+           (position (and source (cadr (find :position (remove-if-not 'listp source) :key 'car)))))
+      (if (and file position)
+	  (with-current-buffer sb:definition-buffer
+	    (wlf:select sb:wm 'definition)
+	    (switch-to-buffer sb:definition-buffer nil t)
+	    (sb:set-definition-buffer-file file position))
+	(message "Definition source not found.")))))
 
 (defun sb:set-documentation-buffer-contents (contents)
-  (with-current-buffer "*sb-documentation*"
+  (with-current-buffer sb:documentation-buffer
     (setq buffer-read-only nil)
     (erase-buffer)
     (insert contents)
@@ -297,18 +301,18 @@
            ((string= category "variables") :variable)
            ((string= category "macros") :macro)
            ((string= category "classes") :class)
-	   ((string= category "generic functions") :generic-function)
-	   ))
+           ((string= category "generic functions") :generic-function)
+           ))
         (definition-function
           (cond
            ((string= category "functions") 'def-properties:function-properties)
            ((string= category "variables") 'def-properties:variable-properties)
            ((string= category "macros") 'def-properties:macro-properties)
            ((string= category "classes") 'def-properties:class-properties)
-	   ((string= category "generic functions") 'def-properties:generic-function-properties))))
+           ((string= category "generic functions") 'def-properties:generic-function-properties))))
     (let* ((definition-properties (slime-eval `(esb::serialize-for-emacs (,definition-function ',(make-symbol (concat package "::" definition))))))
            (documentation (cdr (assoc :documentation definition-properties))))
-      (sb:set-documentation-buffer-contents (or documentation "")))))
+      (sb:set-documentation-buffer-contents (or documentation "This definition is not documented.")))))
 
 (defmethod sb:list-categories ((system sb:common-lisp-system) package)
   '("functions" "variables" "macros" "classes" "generic functions"))
@@ -320,7 +324,7 @@
            ((string= category "variables") :variable)
            ((string= category "macros") :macro)
            ((string= category "classes") :class)
-	   ((string= category "generic functions") :generic-function))))
+           ((string= category "generic functions") :generic-function))))
 
     (slime-eval `(esb::list-definitions ,package ,definition-type))))
 
@@ -365,7 +369,7 @@
            )))
 
   (when (not sb:show-documentation-buffer)
-    (wlf:hide sb:wm 'documentation))  
+    (wlf:hide sb:wm 'documentation))
 
   (sb:initialize-windows)
   (sb:update-packages-buffer)
