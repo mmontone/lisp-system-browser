@@ -208,7 +208,7 @@
       (if (and file position)
           (progn
             (sb:set-definition-buffer-file file position)
-            (sb:set-documentation-buffer-contents (or documentation ""))
+            (sb:set-documentation-buffer-contents (or documentation "This package is not documented."))
             (sb:update-definitions-buffer package (first categories)))
         (message "Definition source not found.")
         ))))
