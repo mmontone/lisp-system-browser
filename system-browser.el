@@ -60,7 +60,7 @@
   :tag "Show documentation buffer")
 
 (defcustom sb:downcase-definition-names t
-  "Show definition names in lowercase."
+  "Show system-browser definition names in lowercase."
   :type 'boolean
   :group 'system-browser
   :tag "Downcase definition names")
@@ -68,7 +68,13 @@
 (defface sb:definition-list-item-face
   '((t :foreground "black"
        :height 0.9))
-  "Face for definitions list items"
+  "Face for system-browser definitions list items"
+  :group 'system-browser-faces)
+
+(defface sb:mode-line-buttons-face
+  '((t :foreground "white"
+       :background "lightblue"))
+  "Face for system-browser buttons in mode-line"
   :group 'system-browser-faces)
 
 (defun sb:setup-list-buffer ()
@@ -127,10 +133,12 @@
 
     ;; Buttons in mode-line
     (push '(:eval (propertize "[toggle docs] "
-                              'local-map sb:mode-line-toggle-docs-map))
+                              'local-map sb:mode-line-toggle-docs-map
+			      'face 'sb:mode-line-buttons-face))
           mode-line-format)
     (push '(:eval (propertize "[quit] "
-                              'local-map quit-system-browser))
+                              'local-map quit-system-browser
+			      'face 'sb:mode-line-buttons-face))
           mode-line-format)
 
     (system-browser-mode)
