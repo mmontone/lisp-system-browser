@@ -1,6 +1,10 @@
 (defpackage :emacs-system-browser
   (:nicknames :esb)
-  (:use :cl))
+  (:use :cl)
+  (:export :package-definitions
+	   :list-definitions
+	   :emacs-package-definitions
+	   :serialize-for-emacs))
 
 (in-package :emacs-system-browser)
 
