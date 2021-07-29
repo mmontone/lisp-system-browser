@@ -4,7 +4,7 @@ This is Smalltalk-like browser for Common Lisp.
 
 NOTE THAT THIS IS VERY MUCH WORK IN PROGRESS AT THIS MOMENT.
 
-![lisp-system-browser](lisp-system-browser.png "lisp-system-browser screenshot")
+![lisp-system-browser](system-browser.gif "lisp-system-browser screenshot")
 
 ## Install
 
