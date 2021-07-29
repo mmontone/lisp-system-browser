@@ -86,6 +86,12 @@
   "Face for system-browser buttons in mode-line"
   :group 'system-browser-faces)
 
+(defface sb:definitions-list-header-face
+  '((t :inherit bold)))
+  "Face for system-browser definitions list headers"
+  :group 'system-browser-faces
+  )
+
 (defun sb:setup-list-buffer ()
   ;; TODO: the following COPY-FACE is global. We need to do something to apply locally.
   (copy-face 'mode-line 'header-line)
@@ -179,7 +185,10 @@
     (with-current-buffer sb:categories-buffer
       (setq buffer-read-only nil)
       (erase-buffer)
-      (insert package)
+      (insert (propertize package 'face
+			  ;;'sb:definitions-list-header-face
+			  'bold
+			  ))
       (newline)
       (dolist (category categories)
         (insert-button category
@@ -207,7 +216,10 @@
   (with-current-buffer sb:definitions-buffer
     (setq buffer-read-only nil)
     (erase-buffer)
-    (insert category)
+    (insert (propertize category 'face
+			'bold
+			;;'sb:definitions-list-header-face
+			))
     (newline)
     (dolist (definition (sb:list-definitions sb:current-browser-system package category))
       (insert-button (if sb:downcase-definition-names
