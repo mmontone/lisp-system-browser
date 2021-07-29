@@ -25,6 +25,10 @@ In Emacs, add this repository path to `load-path` and `system-browser` to `slime
 (slime-setup)
 ```
 
+Install Emacs dependencies:
+
+This depends on [emacs-window-layout](https://github.com/kiwanami/emacs-window-layout) Emacs library. Appears as `window-layout` in `M-x package-list-packages` (melpa).
+
 ## Use
 
 `M-x lisp-system-browser` to open the browser.
