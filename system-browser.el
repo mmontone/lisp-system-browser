@@ -78,10 +78,8 @@
   :group 'system-browser-faces)
 
 (defun sb:setup-list-buffer ()
-  ;; TODO: use a minor mode for list buffer to set this
-  (apply 'set-face-attribute
-         'header-line nil
-         (alist-to-plist (face-all-attributes 'mode-line)))
+  ;; TODO: the following COPY-FACE is global. We need to do something to apply locally.
+  (copy-face 'mode-line 'header-line)
   (setq header-line-format mode-line-format)
   (setq mode-line-format nil)
   (hl-line-mode)
