@@ -326,6 +326,13 @@
 
 (defvar sb:wm)
 
+(defun sb:initialize-windows ()
+  ;; Mark selection windows as dedicated
+  (let ((winfo-list (wlf:wset-winfo-list sb:wm)))
+    (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'packages winfo-list)) t)
+    (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'categories winfo-list)) t)
+    (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'definitions winfo-list)) t)))
+
 (defun system-browser ()
   (interactive)
 
@@ -358,20 +365,16 @@
            )))
 
   (when (not sb:show-documentation-buffer)
-    (wlf:hide sb:wm 'documentation))
+    (wlf:hide sb:wm 'documentation))  
 
-  ;; Mark selection windows as dedicated
-  (let ((winfo-list (wlf:wset-winfo-list sb:wm)))
-    (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'packages winfo-list)) t)
-    (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'categories winfo-list)) t)
-    (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'definitions winfo-list)) t))
-
+  (sb:initialize-windows)
   (sb:update-packages-buffer)
   (wlf:select sb:wm 'packages))
 
 (defun system-browser-reset-layout ()
   (interactive)
-  (wlf:reset-window-sizes sb:wm))
+  (wlf:reset-window-sizes sb:wm)
+  (sb:initialize-windows))
 
 (defun quit-system-browser ()
   (interactive)
