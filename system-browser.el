@@ -66,14 +66,23 @@
   :tag "Downcase definition names")
 
 (defface sb:definition-list-item-face
-  '((t :foreground "black"
-       :height 0.9))
+  '((((background light))
+     :foreground "black"
+     :height 0.9)
+    (((background dark))
+     :foreground "white"
+     :height 0.9)
+    )
   "Face for system-browser definitions list items"
   :group 'system-browser-faces)
 
 (defface sb:mode-line-buttons-face
-  '((t :foreground "white"
-       :background "lightblue"))
+  '((((background light)
+      :foreground "white"
+      :background "darkblue"))
+    (((background dark))
+     :foreground "white"
+     :background "darkblue"))
   "Face for system-browser buttons in mode-line"
   :group 'system-browser-faces)
 
