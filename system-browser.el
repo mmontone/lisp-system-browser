@@ -263,13 +263,16 @@
            ((string= category "functions") :function)
            ((string= category "variables") :variable)
            ((string= category "macros") :macro)
-           ((string= category "classes") :class)))
+           ((string= category "classes") :class)
+	   ((string= category "generic function") :generic-function)))
         (definition-function
           (cond
            ((string= category "functions") 'def-properties:function-properties)
            ((string= category "variables") 'def-properties:variable-properties)
            ((string= category "macros") 'def-properties:macro-properties)
-           ((string= category "classes") 'def-properties:class-properties))))
+           ((string= category "classes") 'def-properties:class-properties)
+	   ((string= category "generic function") 'def-properties:generic-function-properties)
+	   )))
     (let* ((definition-properties (slime-eval `(esb::serialize-for-emacs (,definition-function ',(make-symbol (concat package "::" definition))))))
            (source (find :source definition-properties :key 'car))
            (file (cadr (find :file (remove-if-not 'listp source) :key 'car)))
@@ -293,13 +296,16 @@
            ((string= category "functions") :function)
            ((string= category "variables") :variable)
            ((string= category "macros") :macro)
-           ((string= category "classes") :class)))
+           ((string= category "classes") :class)
+	   ((string= category "generic functions") :generic-function)
+	   ))
         (definition-function
           (cond
            ((string= category "functions") 'def-properties:function-properties)
            ((string= category "variables") 'def-properties:variable-properties)
            ((string= category "macros") 'def-properties:macro-properties)
-           ((string= category "classes") 'def-properties:class-properties))))
+           ((string= category "classes") 'def-properties:class-properties)
+	   ((string= category "generic functions") 'def-properties:generic-function-properties))))
     (let* ((definition-properties (slime-eval `(esb::serialize-for-emacs (,definition-function ',(make-symbol (concat package "::" definition))))))
            (documentation (cdr (assoc :documentation definition-properties))))
       (sb:set-documentation-buffer-contents (or documentation "")))))
@@ -313,7 +319,8 @@
            ((string= category "functions") :function)
            ((string= category "variables") :variable)
            ((string= category "macros") :macro)
-           ((string= category "classes") :class))))
+           ((string= category "classes") :class)
+	   ((string= category "generic functions") :generic-function))))
 
     (slime-eval `(esb::list-definitions ,package ,definition-type))))
 

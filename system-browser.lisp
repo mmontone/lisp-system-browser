@@ -10,13 +10,15 @@
             (:function 'def-properties:function-properties)
             (:macro 'def-properties:macro-properties)
             (:class 'def-properties:class-properties)
-            (:variable 'def-properties:variable-properties)))
+            (:variable 'def-properties:variable-properties)
+	    (:generic-function 'def-properties:generic-function-properties)))
         (predicate-function
           (ecase category
             (:macro 'def-properties:symbol-macro-p)
             (:function 'def-properties:symbol-function-p)
             (:class 'def-properties:symbol-class-p)
-            (:variable 'def-properties:symbol-variable-p))))
+            (:variable 'def-properties:symbol-variable-p)
+	    (:generic-function 'def-properties:symbol-generic-function-p))))
     (let (defs
              (package (find-package package-name)))
       (do-symbols (symbol package)
@@ -45,7 +47,8 @@
             (:function 'def-properties:symbol-function-p)
             (:macro 'def-properties:symbol-macro-p)
             (:class 'def-properties:symbol-class-p)
-            (:variable 'def-properties:symbol-variable-p))))
+            (:variable 'def-properties:symbol-variable-p)
+	    (:generic-function 'def-properties:symbol-generic-function-p))))
     (let (defs
              (package (find-package package-name)))
       (do-symbols (symbol package)
