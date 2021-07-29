@@ -305,7 +305,7 @@
       (sb:set-documentation-buffer-contents (or documentation "")))))
 
 (defmethod sb:list-categories ((system sb:common-lisp-system) package)
-  '("variables" "macros" "functions" "classes" "generic functions"))
+  '("functions" "variables" "macros" "classes" "generic functions"))
 
 (defmethod sb:list-definitions ((system sb:common-lisp-system) package category)
   (let ((definition-type
