@@ -311,8 +311,16 @@
            ((string= category "classes") 'def-properties:class-properties)
            ((string= category "generic functions") 'def-properties:generic-function-properties))))
     (let* ((definition-properties (slime-eval `(esb::serialize-for-emacs (,definition-function ',(make-symbol (concat package "::" definition))))))
-           (documentation (cdr (assoc :documentation definition-properties))))
-      (sb:set-documentation-buffer-contents (or documentation "This definition is not documented.")))))
+           (documentation (cdr (assoc :documentation definition-properties)))
+	   (contents (or documentation "This definition is not documented.")))
+      (when (eql definition-type :variable)
+	(setq contents (concat contents "\n\n"))
+	  (if (not (cdr (assoc :boundp definition-properties)))
+            (setq contents (concat contents "The variable is UNBOUND."))
+          (progn
+            (setq contents (concat contents (propertize "Variable value: " 'face 'bold)))
+            (setq contents (concat contents (cdr (assoc :value definition-properties)))))))
+      (sb:set-documentation-buffer-contents contents))))
 
 (defmethod sb:list-categories ((system sb:common-lisp-system) package)
   '("functions" "variables" "macros" "classes" "generic functions"))
