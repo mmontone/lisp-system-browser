@@ -1,3 +1,5 @@
+(require :def-properties (merge-pathnames #p"def-properties.lisp" (uiop/pathname:pathname-directory-pathname *load-pathname*)))
+
 (defpackage :emacs-system-browser
   (:nicknames :esb)
   (:use :cl)
@@ -60,3 +62,5 @@
                    (funcall predicate-function symbol))
           (push symbol defs)))
       (sort (mapcar 'symbol-name defs) 'string<))))
+
+(provide 'emacs-system-browser)

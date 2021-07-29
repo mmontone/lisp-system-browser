@@ -376,6 +376,7 @@
     (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'definitions winfo-list)) t)))
 
 (defun system-browser ()
+  "Open the currently instantiated system browser."
   (interactive)
 
   (esb:initialize-packages-buffer)
@@ -414,16 +415,19 @@
   (wlf:select esb:wm 'packages))
 
 (defun lisp-system-browser ()
+  "Open the Common Lisp system browser."
   (interactive)
   (setq esb:current-browser-system (make-instance 'esb:common-lisp-system))
   (system-browser))
 
 (defun system-browser-reset-layout ()
+  "Reset system browser layout. Use this when Emacs windows break the browser's layout."
   (interactive)
   (wlf:reset-window-sizes esb:wm)
   (esb:initialize-windows))
 
 (defun quit-system-browser ()
+  "Quit the system browser."
   (interactive)
   (kill-buffer esb:packages-buffer)
   (kill-buffer esb:categories-buffer)
@@ -436,15 +440,15 @@
     (package (slime-read-package-name "Package: "))
     (definitions (slime-read-symbol-name "Symbol: "))))
 
-(defun esb:goto (name)
-  (case esb:system-browser-buffer-type
-    (package (esb:update-categories-buffer name))
-    (definitions (esb:update-definition-buffer))))
+;; (defun esb:goto (name)
+;;   (case esb:system-browser-buffer-type
+;;     (package (esb:update-categories-buffer name))
+;;     (definitions (esb:update-definition-buffer))))
 
-(defun system-browser-goto (name)
-  (interactive (list (esb:read-name)))
+;; (defun system-browser-goto (name)
+;;   (interactive (list (esb:read-name)))
 
-  (esb:goto name))
+;;   (esb:goto name))
 
 (defun system-browser-browse-package (name)
   (interactive))
@@ -452,7 +456,13 @@
 (defun system-browser-browse-definition (name)
   (interactive))
 
+(defun system-browser-refresh ()
+  "Refresh the system browser contents and reset its layout."
+  (interactive)
+  (system-browser))
+
 (defun system-browser-toggle-docs ()
+  "Toggle documentation panel in system browser."
   (interactive)
   (wlf:toggle esb:wm 'documentation))
 
@@ -477,7 +487,7 @@
     ["Browse definition..." system-browser-browse-definition
      :help "Browse a definition"]
     "--"
-    ["Refresh browser" system-browser
+    ["Refresh browser" system-browser-refresh
      :help "Refresh the system browser"]
     ["Reset layout" system-browser-reset-layout
      :help "Reset system browser windows layout"]
@@ -486,3 +496,11 @@
     "--"
     ["Quit" quit-system-browser
      :help "Quit System Browser"]))
+
+(define-slime-contrib system-browser
+  "Smalltalk-like system browser for Common Lisp"
+  (:authors "Mariano Montone")
+  (:license "GPL")
+  (:swank-dependencies emacs-system-browser))
+
+(provide 'system-browser)
