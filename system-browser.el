@@ -4,7 +4,12 @@
 (require 'window-layout)
 
 (defclass esb:system-browser-system ()
-  ())
+  ((selected-package :accessor esb:selected-package
+		     :initform nil)
+   (selected-category :accessor esb:selected-category
+		      :initform nil)
+   (selected-definition :accessor esb:selected-definition
+			:initform nil)))
 
 (defclass esb:common-lisp-system (esb:system-browser-system)
   ())
@@ -172,15 +177,19 @@
                            (downcase package-name)
                          package-name)
                        'action (lambda (btn)
-                                 (message package-name)
-                                 (esb:update-categories-buffer package-name))
+				 (esb:select-package package-name))
                        'face 'esb:definition-list-item-face
                        'follow-link t
                        'help-echo "Browse package")
         (newline))
       (setq buffer-read-only t))
     (wlf:select esb:wm 'packages)
-    (esb:update-categories-buffer (first packages))))
+
+    (esb:select-package (first packages))))
+
+(defun esb:select-package (package)
+  ;;(oset esb:current-browser-system selected-package package)
+  (esb:update-categories-buffer package))
 
 (defun esb:update-categories-buffer (package)
   (let ((categories (esb:list-categories esb:current-browser-system package)))
@@ -194,7 +203,7 @@
       (dolist (category categories)
         (insert-button category
                        'action (lambda (btn)
-                                 (esb:update-definitions-buffer package category))
+                                 (esb:select-category package category))
                        'follow-link t
                        'face 'esb:definition-list-item-face
                        'help-echo "Browse category")
@@ -216,9 +225,13 @@
           (progn
             (esb:set-definition-buffer-file file position)
             (esb:set-documentation-buffer-contents (or documentation "This package is not documented."))
-            (esb:update-definitions-buffer package (first categories)))
+	    (esb:select-category package (first categories)))
         (message "Definition source not found.")
         ))))
+
+(defun esb:select-category (package category)
+  ;;(oset esb:current-browser-system selected-category  category)
+  (esb:update-definitions-buffer package category))
 
 (defun esb:update-definitions-buffer (package category)
   (with-current-buffer esb:definitions-buffer
@@ -233,14 +246,18 @@
                          (downcase definition)
                        definition)
                      'action (lambda (btn)
-                               (esb:update-definition-buffer package category definition)
-                               (esb:update-documentation-buffer package category definition))
+			       (esb:select-definition package category definition))
                      'face 'esb:definition-list-item-face
                      'follow-link t
                      'help-echo "Browse definition")
       (newline))
     (setq buffer-read-only t))
   (wlf:select esb:wm 'definitions))
+
+(defun esb:select-definition (package category definition)
+  ;;(oset esb:current-browser-system selected-definition definition)
+  (esb:update-definition-buffer package category definition)
+  (esb:update-documentation-buffer package category definition))
 
 (defun esb:set-definition-buffer-file (file &optional position)
   (block func
@@ -395,6 +412,11 @@
   (esb:initialize-windows)
   (esb:update-packages-buffer)
   (wlf:select esb:wm 'packages))
+
+(defun lisp-system-browser ()
+  (interactive)
+  (setq esb:current-browser-system (make-instance 'esb:common-lisp-system))
+  (system-browser))
 
 (defun system-browser-reset-layout ()
   (interactive)
