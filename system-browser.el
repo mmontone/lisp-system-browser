@@ -65,7 +65,7 @@
   :group 'system-browser
   :tag "Downcase definition names")
 
-(defface sb:definition-list-item
+(defface sb:definition-list-item-face
   '((t :foreground "black"
        :height 0.9))
   "Face for definitions list items"
@@ -151,7 +151,7 @@
                        'action (lambda (btn)
                                  (message package-name)
                                  (sb:update-categories-buffer package-name))
-                       'face 'sb:definition-list-item
+                       'face 'sb:definition-list-item-face
                        'follow-link t
                        'help-echo "Browse package")
         (newline))
@@ -171,7 +171,7 @@
                        'action (lambda (btn)
                                  (sb:update-definitions-buffer package category))
                        'follow-link t
-		       'face 'sb:definition-list-item
+		       'face 'sb:definition-list-item-face
                        'help-echo "Browse category")
         (newline))
       (setq buffer-read-only t))
@@ -201,7 +201,7 @@
                      'action (lambda (btn)
                                (sb:update-definition-buffer package category definition)
                                (sb:update-documentation-buffer package category definition))
-		     'face 'sb:definition-list-item
+		     'face 'sb:definition-list-item-face
                      'follow-link t
                      'help-echo "Browse definition")
       (newline))
