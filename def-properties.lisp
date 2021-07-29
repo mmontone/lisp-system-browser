@@ -27,6 +27,7 @@
    :class-properties
    :type-properties
    :package-properties
+   :generic-function-properties
    :parse-docstring
    :list-lambda-list-args
    :asdf-system-packages
