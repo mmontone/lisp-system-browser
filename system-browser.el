@@ -78,11 +78,11 @@
 
 (defface sb:mode-line-buttons-face
   '((((background light))
-     :foreground "white"
-     :background "darkblue")
+     :box (:line-width 2 :color "dark grey")
+     :background "light grey" :foreground "black")
     (((background dark))
-     :foreground "white"
-     :background "darkblue"))
+     :box (:line-width 2 :color "dark grey")
+     :background "black" :foreground "white"))
   "Face for system-browser buttons in mode-line"
   :group 'system-browser-faces)
 
@@ -145,13 +145,15 @@
                                  (cdr mode-line-format)))
 
     ;; Buttons in mode-line
-    (push '(:eval (propertize "[toggle docs] "
+    (push '(:eval (propertize "toggle docs "
                               'local-map sb:mode-line-toggle-docs-map
-                              'face 'sb:mode-line-buttons-face))
+                              'face 'sb:mode-line-buttons-face
+			      'mouse-face 'mode-line-highlight))
           mode-line-format)
-    (push '(:eval (propertize "[quit] "
+    (push '(:eval (propertize "quit "
                               'local-map quit-system-browser
-                              'face 'sb:mode-line-buttons-face))
+                              'face 'sb:mode-line-buttons-face
+			      'mouse-face 'mode-line-highlight))
           mode-line-format)
 
     (system-browser-mode)
