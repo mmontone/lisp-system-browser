@@ -202,8 +202,13 @@
 
     (let* ((package-properties (slime-eval `(esb::serialize-for-emacs (def-properties:package-properties ,package t))))
            (source (find :source package-properties :key 'car))
-           (file (and source (cadr (find :file (remove-if-not 'listp source) :key 'car))))
-           (position (and source (cadr (find :position (remove-if-not 'listp source) :key 'car))))
+	   (file (and source
+		      (or (cadr (find :file (remove-if-not 'listp source) :key 'car))
+			  (caddr (find :buffer-and-file (remove-if-not 'listp source) :key 'car)))))
+           (position (and source (or
+				  (cadr (find :position (remove-if-not 'listp source) :key 'car))
+				  (cadr (find :offset (remove-if-not 'listp source) :key 'car))
+				  )))
            (documentation (cdr (assoc :documentation package-properties))))
       (if (and file position)
           (progn
@@ -279,8 +284,12 @@
            )))
     (let* ((definition-properties (slime-eval `(esb:serialize-for-emacs (,definition-function ',(make-symbol (concat package "::" definition)) t))))
            (source (find :source definition-properties :key 'car))
-           (file (and source (cadr (find :file (remove-if-not 'listp source) :key 'car))))
-           (position (and source (cadr (find :position (remove-if-not 'listp source) :key 'car)))))
+           (file (and source (or
+			      (cadr (find :file (remove-if-not 'listp source) :key 'car))
+			      (caddr (find :buffer-and-file (remove-if-not 'listp source) :key 'car)))))
+           (position (and source (or
+				  (cadr (find :position (remove-if-not 'listp source) :key 'car))
+				  (cadr (find :offset (remove-if-not 'listp source) :key 'car))))))
       (if (and file position)
 	  (with-current-buffer sb:definition-buffer
 	    (wlf:select sb:wm 'definition)
