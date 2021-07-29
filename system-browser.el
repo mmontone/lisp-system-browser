@@ -3,43 +3,43 @@
 (require 'cl)
 (require 'window-layout)
 
-(defclass sb:system-browser-system ()
+(defclass esb:system-browser-system ()
   ())
 
-(defclass sb:common-lisp-system (sb:system-browser-system)
+(defclass esb:common-lisp-system (esb:system-browser-system)
   ())
 
-(defgeneric sb:list-packages (system-browser-system))
-(defgeneric sb:list-categories (system-browser-system package))
-(defgeneric sb:list-definitions (system-browser-system package category))
-(defgeneric sb:packages-buffer-mode-line-format (system-browser-system))
-(defgeneric sb:categories-buffer-mode-line-format (system-browser-system))
-(defgeneric sb:definitions-buffer-mode-line-format (system-browser-system))
-(defgeneric sb:definition-buffer-mode-line-format (system-browser-system))
+(defgeneric esb:list-packages (system-browser-system))
+(defgeneric esb:list-categories (system-browser-system package))
+(defgeneric esb:list-definitions (system-browser-system package category))
+(defgeneric esb:packages-buffer-mode-line-format (system-browser-system))
+(defgeneric esb:categories-buffer-mode-line-format (system-browser-system))
+(defgeneric esb:definitions-buffer-mode-line-format (system-browser-system))
+(defgeneric esb:definition-buffer-mode-line-format (system-browser-system))
 
 ;; Default mode-line
-(defmethod sb:packages-buffer-mode-line-format (system-browser-system)
+(defmethod esb:packages-buffer-mode-line-format (system-browser-system)
   "Packages")
 
-(defmethod sb:categories-buffer-mode-line-format (system-browser-system)
+(defmethod esb:categories-buffer-mode-line-format (system-browser-system)
   "Categories")
 
-(defmethod sb:definitions-buffer-mode-line-format (system-browser-system)
+(defmethod esb:definitions-buffer-mode-line-format (system-browser-system)
   "Definitions")
 
-(defmethod sb:definition-buffer-mode-line-format (system-browser-system)
+(defmethod esb:definition-buffer-mode-line-format (system-browser-system)
   nil)
 
-(defmethod sb:list-packages ((system sb:common-lisp-system))
+(defmethod esb:list-packages ((system esb:common-lisp-system))
   (slime-eval '(cl:sort (cl:mapcar 'cl:package-name (cl:list-all-packages)) 'cl:string<)))
 
-(defvar sb:packages-buffer)
-(defvar sb:catgories-buffer)
-(defvar sb:definitions-buffer)
-(defvar sb:definitions-buffer)
-(defvar sb:documentation-buffer)
+(defvar esb:packages-buffer)
+(defvar esb:catgories-buffer)
+(defvar esb:definitions-buffer)
+(defvar esb:definitions-buffer)
+(defvar esb:documentation-buffer)
 
-(defvar sb:current-browser-system (make-instance 'sb:common-lisp-system))
+(defvar esb:current-browser-system (make-instance 'esb:common-lisp-system))
 
 (defun alist-to-plist (alist)
   (let ((plist '()))
@@ -53,19 +53,19 @@
 (defgroup system-browser nil
   "System browser configuration")
 
-(defcustom sb:show-documentation-buffer nil
+(defcustom esb:show-documentation-buffer nil
   "Show documentation buffer in system browser."
   :type 'boolean
   :group 'system-browser
   :tag "Show documentation buffer")
 
-(defcustom sb:downcase-definition-names t
+(defcustom esb:downcase-definition-names t
   "Show system-browser definition names in lowercase."
   :type 'boolean
   :group 'system-browser
   :tag "Downcase definition names")
 
-(defface sb:definition-list-item-face
+(defface esb:definition-list-item-face
   '((((background light))
      :foreground "black"
      :height 0.9)
@@ -76,7 +76,7 @@
   "Face for system-browser definitions list items"
   :group 'system-browser-faces)
 
-(defface sb:mode-line-buttons-face
+(defface esb:mode-line-buttons-face
   '((((background light))
      :box (:line-width 2 :color "dark grey")
      :background "light grey" :foreground "black")
@@ -86,13 +86,13 @@
   "Face for system-browser buttons in mode-line"
   :group 'system-browser-faces)
 
-(defface sb:definitions-list-header-face
+(defface esb:definitions-list-header-face
   '((t :inherit bold))
   "Face for system-browser definitions list headers"
   :group 'system-browser-faces
   )
 
-(defun sb:setup-list-buffer ()
+(defun esb:setup-list-buffer ()
   ;; TODO: the following COPY-FACE is global. We need to do something to apply locally.
   (copy-face 'mode-line 'header-line)
   (setq header-line-format mode-line-format)
@@ -100,44 +100,44 @@
   (hl-line-mode)
   (system-browser-mode))
 
-(defvar-local sb:system-browser-buffer-type nil)
+(defvar-local esb:system-browser-buffer-type nil)
 
-(defun sb:initialize-packages-buffer ()
-  (setq sb:packages-buffer (get-buffer-create "*sb-packages*"))
-  (with-current-buffer sb:packages-buffer
-    (sb:setup-list-buffer)
-    (when (sb:packages-buffer-mode-line-format sb:current-browser-system)
-      (setq header-line-format (sb:packages-buffer-mode-line-format sb:current-browser-system)))
-    (setq sb:system-browser-buffer-type 'packages)
+(defun esb:initialize-packages-buffer ()
+  (setq esb:packages-buffer (get-buffer-create "*esb-packages*"))
+  (with-current-buffer esb:packages-buffer
+    (esb:setup-list-buffer)
+    (when (esb:packages-buffer-mode-line-format esb:current-browser-system)
+      (setq header-line-format (esb:packages-buffer-mode-line-format esb:current-browser-system)))
+    (setq esb:system-browser-buffer-type 'packages)
     ))
 
-(defun sb:initialize-categories-buffer ()
-  (setq sb:categories-buffer (get-buffer-create "*sb-categories*"))
-  (with-current-buffer sb:categories-buffer
-    (sb:setup-list-buffer)
-    (when (sb:categories-buffer-mode-line-format sb:current-browser-system)
-      (setq header-line-format (sb:categories-buffer-mode-line-format sb:current-browser-system)))
-    (setq sb:system-browser-buffer-type 'categories)))
+(defun esb:initialize-categories-buffer ()
+  (setq esb:categories-buffer (get-buffer-create "*esb-categories*"))
+  (with-current-buffer esb:categories-buffer
+    (esb:setup-list-buffer)
+    (when (esb:categories-buffer-mode-line-format esb:current-browser-system)
+      (setq header-line-format (esb:categories-buffer-mode-line-format esb:current-browser-system)))
+    (setq esb:system-browser-buffer-type 'categories)))
 
-(defun sb:initialize-definitions-buffer ()
-  (setq sb:definitions-buffer (get-buffer-create "*sb-definitions*"))
-  (with-current-buffer sb:definitions-buffer
-    (sb:setup-list-buffer)
-    (when (sb:definitions-buffer-mode-line-format sb:current-browser-system)
-      (setq header-line-format (sb:definitions-buffer-mode-line-format sb:current-browser-system)))
-    (setq sb:system-browser-buffer-type 'definitions)))
+(defun esb:initialize-definitions-buffer ()
+  (setq esb:definitions-buffer (get-buffer-create "*esb-definitions*"))
+  (with-current-buffer esb:definitions-buffer
+    (esb:setup-list-buffer)
+    (when (esb:definitions-buffer-mode-line-format esb:current-browser-system)
+      (setq header-line-format (esb:definitions-buffer-mode-line-format esb:current-browser-system)))
+    (setq esb:system-browser-buffer-type 'definitions)))
 
-(defvar sb:mode-line-toggle-docs-map
+(defvar esb:mode-line-toggle-docs-map
   (let ((map (make-sparse-keymap)))
     (define-key map [mode-line mouse-1]
       (lambda (_e)
         (interactive "e")
-        (wlf:toggle sb:wm 'documentation)))
+        (wlf:toggle esb:wm 'documentation)))
     map))
 
-(defun sb:initialize-definition-buffer ()
-  (setq sb:definition-buffer (get-buffer-create "*sb-definition*"))
-  (with-current-buffer "*sb-definition*"
+(defun esb:initialize-definition-buffer ()
+  (setq esb:definition-buffer (get-buffer-create "*esb-definition*"))
+  (with-current-buffer esb:definition-buffer
     (lisp-mode)
 
     ;; Show visited file in mode-line
@@ -146,112 +146,112 @@
 
     ;; Buttons in mode-line
     (push '(:eval (propertize "toggle docs "
-                              'local-map sb:mode-line-toggle-docs-map
-                              'face 'sb:mode-line-buttons-face
-			      'mouse-face 'mode-line-highlight))
+                              'local-map esb:mode-line-toggle-docs-map
+                              'face 'esb:mode-line-buttons-face
+                              'mouse-face 'mode-line-highlight))
           mode-line-format)
     (push '(:eval (propertize "quit "
                               'local-map quit-system-browser
-                              'face 'sb:mode-line-buttons-face
-			      'mouse-face 'mode-line-highlight))
+                              'face 'esb:mode-line-buttons-face
+                              'mouse-face 'mode-line-highlight))
           mode-line-format)
 
     (system-browser-mode)
     ))
 
-(defun sb:initialize-documentation-buffer ()
-  (setq sb:documentation-buffer (get-buffer-create "*sb-documentation*")))
+(defun esb:initialize-documentation-buffer ()
+  (setq esb:documentation-buffer (get-buffer-create "*esb-documentation*")))
 
-(defun sb:update-packages-buffer ()
-  (let ((packages (sb:list-packages sb:current-browser-system)))
-    (with-current-buffer sb:packages-buffer
+(defun esb:update-packages-buffer ()
+  (let ((packages (esb:list-packages esb:current-browser-system)))
+    (with-current-buffer esb:packages-buffer
       (setq buffer-read-only nil)
       (erase-buffer)
       (dolist (package-name packages)
-        (insert-button (if sb:downcase-definition-names
+        (insert-button (if esb:downcase-definition-names
                            (downcase package-name)
                          package-name)
                        'action (lambda (btn)
                                  (message package-name)
-                                 (sb:update-categories-buffer package-name))
-                       'face 'sb:definition-list-item-face
+                                 (esb:update-categories-buffer package-name))
+                       'face 'esb:definition-list-item-face
                        'follow-link t
                        'help-echo "Browse package")
         (newline))
       (setq buffer-read-only t))
-    (wlf:select sb:wm 'packages)
-    (sb:update-categories-buffer (first packages))))
+    (wlf:select esb:wm 'packages)
+    (esb:update-categories-buffer (first packages))))
 
-(defun sb:update-categories-buffer (package)
-  (let ((categories (sb:list-categories sb:current-browser-system package)))
-    (with-current-buffer sb:categories-buffer
+(defun esb:update-categories-buffer (package)
+  (let ((categories (esb:list-categories esb:current-browser-system package)))
+    (with-current-buffer esb:categories-buffer
       (setq buffer-read-only nil)
       (erase-buffer)
       (insert (propertize package 'face
-                          'sb:definitions-list-header-face
+                          'esb:definitions-list-header-face
                           ))
       (newline)
       (dolist (category categories)
         (insert-button category
                        'action (lambda (btn)
-                                 (sb:update-definitions-buffer package category))
+                                 (esb:update-definitions-buffer package category))
                        'follow-link t
-                       'face 'sb:definition-list-item-face
+                       'face 'esb:definition-list-item-face
                        'help-echo "Browse category")
         (newline))
       (setq buffer-read-only t))
-    (wlf:select sb:wm 'categories)
+    (wlf:select esb:wm 'categories)
 
     (let* ((package-properties (slime-eval `(esb::serialize-for-emacs (def-properties:package-properties ,package t))))
            (source (find :source package-properties :key 'car))
-	   (file (and source
-		      (or (cadr (find :file (remove-if-not 'listp source) :key 'car))
-			  (caddr (find :buffer-and-file (remove-if-not 'listp source) :key 'car)))))
+           (file (and source
+                      (or (cadr (find :file (remove-if-not 'listp source) :key 'car))
+                          (caddr (find :buffer-and-file (remove-if-not 'listp source) :key 'car)))))
            (position (and source (or
-				  (cadr (find :position (remove-if-not 'listp source) :key 'car))
-				  (cadr (find :offset (remove-if-not 'listp source) :key 'car))
-				  )))
+                                  (cadr (find :position (remove-if-not 'listp source) :key 'car))
+                                  (cadr (find :offset (remove-if-not 'listp source) :key 'car))
+                                  )))
            (documentation (cdr (assoc :documentation package-properties))))
       (if (and file position)
           (progn
-            (sb:set-definition-buffer-file file position)
-            (sb:set-documentation-buffer-contents (or documentation "This package is not documented."))
-            (sb:update-definitions-buffer package (first categories)))
+            (esb:set-definition-buffer-file file position)
+            (esb:set-documentation-buffer-contents (or documentation "This package is not documented."))
+            (esb:update-definitions-buffer package (first categories)))
         (message "Definition source not found.")
         ))))
 
-(defun sb:update-definitions-buffer (package category)
-  (with-current-buffer sb:definitions-buffer
+(defun esb:update-definitions-buffer (package category)
+  (with-current-buffer esb:definitions-buffer
     (setq buffer-read-only nil)
     (erase-buffer)
     (insert (propertize category 'face
-                        'sb:definitions-list-header-face
+                        'esb:definitions-list-header-face
                         ))
     (newline)
-    (dolist (definition (sb:list-definitions sb:current-browser-system package category))
-      (insert-button (if sb:downcase-definition-names
+    (dolist (definition (esb:list-definitions esb:current-browser-system package category))
+      (insert-button (if esb:downcase-definition-names
                          (downcase definition)
                        definition)
                      'action (lambda (btn)
-                               (sb:update-definition-buffer package category definition)
-                               (sb:update-documentation-buffer package category definition))
-                     'face 'sb:definition-list-item-face
+                               (esb:update-definition-buffer package category definition)
+                               (esb:update-documentation-buffer package category definition))
+                     'face 'esb:definition-list-item-face
                      'follow-link t
                      'help-echo "Browse definition")
       (newline))
     (setq buffer-read-only t))
-  (wlf:select sb:wm 'definitions))
+  (wlf:select esb:wm 'definitions))
 
-(defun sb:set-definition-buffer-file (file &optional position)
+(defun esb:set-definition-buffer-file (file &optional position)
   (block func
-    (with-current-buffer sb:definition-buffer
+    (with-current-buffer esb:definition-buffer
 
       ;; Check for unsaved changes in definition buffer
       (when (buffer-modified-p)
         (when (not (yes-or-no-p "System Browser definition buffer modified. Discard changes? "))
           (return-from func)))
 
-      (wlf:select sb:wm 'definition)
+      (wlf:select esb:wm 'definition)
 
       (erase-buffer)
       (insert-file-contents file)
@@ -266,7 +266,7 @@
         (goto-char position)
         (recenter-top-bottom 0)))))
 
-(defun sb:update-definition-buffer (package category definition)
+(defun esb:update-definition-buffer (package category definition)
   (let ((definition-type
           (cond
            ((string= category "functions") :function)
@@ -274,7 +274,7 @@
            ((string= category "macros") :macro)
            ((string= category "classes") :class)
            ((string= category "generic functions") :generic-function)
-	   (t (error "Invalid category: %s" category))))
+           (t (error "Invalid category: %s" category))))
         (definition-function
           (cond
            ((string= category "functions") 'def-properties:function-properties)
@@ -282,32 +282,32 @@
            ((string= category "macros") 'def-properties:macro-properties)
            ((string= category "classes") 'def-properties:class-properties)
            ((string= category "generic functions") 'def-properties:generic-function-properties)
-	   (t (error "Invalid category: %s" category))
+           (t (error "Invalid category: %s" category))
            )))
     (let* ((definition-properties (slime-eval `(esb:serialize-for-emacs (,definition-function ',(make-symbol (concat package "::" definition)) t))))
            (source (find :source definition-properties :key 'car))
            (file (and source (or
-			      (cadr (find :file (remove-if-not 'listp source) :key 'car))
-			      (caddr (find :buffer-and-file (remove-if-not 'listp source) :key 'car)))))
+                              (cadr (find :file (remove-if-not 'listp source) :key 'car))
+                              (caddr (find :buffer-and-file (remove-if-not 'listp source) :key 'car)))))
            (position (and source (or
-				  (cadr (find :position (remove-if-not 'listp source) :key 'car))
-				  (cadr (find :offset (remove-if-not 'listp source) :key 'car))))))
+                                  (cadr (find :position (remove-if-not 'listp source) :key 'car))
+                                  (cadr (find :offset (remove-if-not 'listp source) :key 'car))))))
       (if (and file position)
-	  (with-current-buffer sb:definition-buffer
-	    (wlf:select sb:wm 'definition)
-	    (switch-to-buffer sb:definition-buffer nil t)
-	    (sb:set-definition-buffer-file file position))
-	(message "Definition source not found.")))))
+          (with-current-buffer esb:definition-buffer
+            (wlf:select esb:wm 'definition)
+            (switch-to-buffer esb:definition-buffer nil t)
+            (esb:set-definition-buffer-file file position))
+        (message "Definition source not found.")))))
 
-(defun sb:set-documentation-buffer-contents (contents)
-  (with-current-buffer sb:documentation-buffer
+(defun esb:set-documentation-buffer-contents (contents)
+  (with-current-buffer esb:documentation-buffer
     (setq buffer-read-only nil)
     (erase-buffer)
     (insert contents)
     (goto-char 0)
     (setq buffer-read-only t)))
 
-(defun sb:update-documentation-buffer (package category definition)
+(defun esb:update-documentation-buffer (package category definition)
   (let ((definition-type
           (cond
            ((string= category "functions") :function)
@@ -325,20 +325,20 @@
            ((string= category "generic functions") 'def-properties:generic-function-properties))))
     (let* ((definition-properties (slime-eval `(esb::serialize-for-emacs (,definition-function ',(make-symbol (concat package "::" definition)) t))))
            (documentation (cdr (assoc :documentation definition-properties)))
-	   (contents (or documentation "This definition is not documented.")))
+           (contents (or documentation "This definition is not documented.")))
       (when (eql definition-type :variable)
-	(setq contents (concat contents "\n\n"))
-	  (if (not (cdr (assoc :boundp definition-properties)))
+        (setq contents (concat contents "\n\n"))
+        (if (not (cdr (assoc :boundp definition-properties)))
             (setq contents (concat contents "The variable is UNBOUND."))
           (progn
             (setq contents (concat contents (propertize "Variable value: " 'face 'bold)))
             (setq contents (concat contents (cdr (assoc :value definition-properties)))))))
-      (sb:set-documentation-buffer-contents contents))))
+      (esb:set-documentation-buffer-contents contents))))
 
-(defmethod sb:list-categories ((system sb:common-lisp-system) package)
+(defmethod esb:list-categories ((system esb:common-lisp-system) package)
   '("functions" "variables" "macros" "classes" "generic functions"))
 
-(defmethod sb:list-definitions ((system sb:common-lisp-system) package category)
+(defmethod esb:list-definitions ((system esb:common-lisp-system) package category)
   (let ((definition-type
           (cond
            ((string= category "functions") :function)
@@ -347,13 +347,13 @@
            ((string= category "classes") :class)
            ((string= category "generic functions") :generic-function))))
 
-    (slime-eval `(esb::list-definitions ,package ,definition-type))))
+    (slime-eval `(esb:list-definitions ,package ,definition-type))))
 
-(defvar sb:wm)
+(defvar esb:wm)
 
-(defun sb:initialize-windows ()
+(defun esb:initialize-windows ()
   ;; Mark selection windows as dedicated
-  (let ((winfo-list (wlf:wset-winfo-list sb:wm)))
+  (let ((winfo-list (wlf:wset-winfo-list esb:wm)))
     (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'packages winfo-list)) t)
     (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'categories winfo-list)) t)
     (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'definitions winfo-list)) t)))
@@ -361,13 +361,13 @@
 (defun system-browser ()
   (interactive)
 
-  (sb:initialize-packages-buffer)
-  (sb:initialize-categories-buffer)
-  (sb:initialize-definitions-buffer)
-  (sb:initialize-definition-buffer)
-  (sb:initialize-documentation-buffer)
+  (esb:initialize-packages-buffer)
+  (esb:initialize-categories-buffer)
+  (esb:initialize-definitions-buffer)
+  (esb:initialize-definition-buffer)
+  (esb:initialize-documentation-buffer)
 
-  (setq sb:wm
+  (setq esb:wm
         (wlf:layout
          '(| (:left-size-ratio 0.20)
              (- (:left-size-ratio 0.33)
@@ -378,51 +378,51 @@
                 definition
                 documentation))
          '((:name packages
-                  :buffer "*sb-packages*")
+                  :buffer "*esb-packages*")
            (:name categories
-                  :buffer "*sb-categories*")
+                  :buffer "*esb-categories*")
            (:name definitions
-                  :buffer "*sb-definitions*")
+                  :buffer "*esb-definitions*")
            (:name definition
-                  :buffer "*sb-definition*")
+                  :buffer "*esb-definition*")
            (:name documentation
-                  :buffer "*sb-documentation*")
+                  :buffer "*esb-documentation*")
            )))
 
-  (when (not sb:show-documentation-buffer)
-    (wlf:hide sb:wm 'documentation))
+  (when (not esb:show-documentation-buffer)
+    (wlf:hide esb:wm 'documentation))
 
-  (sb:initialize-windows)
-  (sb:update-packages-buffer)
-  (wlf:select sb:wm 'packages))
+  (esb:initialize-windows)
+  (esb:update-packages-buffer)
+  (wlf:select esb:wm 'packages))
 
 (defun system-browser-reset-layout ()
   (interactive)
-  (wlf:reset-window-sizes sb:wm)
-  (sb:initialize-windows))
+  (wlf:reset-window-sizes esb:wm)
+  (esb:initialize-windows))
 
 (defun quit-system-browser ()
   (interactive)
-  (kill-buffer sb:packages-buffer)
-  (kill-buffer sb:categories-buffer)
-  (kill-buffer sb:definitions-buffer)
-  (kill-buffer sb:definition-buffer)
-  (wlf:clear-windows sb:wm t))
+  (kill-buffer esb:packages-buffer)
+  (kill-buffer esb:categories-buffer)
+  (kill-buffer esb:definitions-buffer)
+  (kill-buffer esb:definition-buffer)
+  (wlf:clear-windows esb:wm t))
 
-(defun sb:read-name ()
-  (case sb:system-browser-buffer-type
+(defun esb:read-name ()
+  (case esb:system-browser-buffer-type
     (package (slime-read-package-name "Package: "))
     (definitions (slime-read-symbol-name "Symbol: "))))
 
-(defun sb:goto (name)
-  (case sb:system-browser-buffer-type
-    (package (sb:update-categories-buffer name))
-    (definitions (sb:update-definition-buffer))))
+(defun esb:goto (name)
+  (case esb:system-browser-buffer-type
+    (package (esb:update-categories-buffer name))
+    (definitions (esb:update-definition-buffer))))
 
 (defun system-browser-goto (name)
-  (interactive (list (sb:read-name)))
+  (interactive (list (esb:read-name)))
 
-  (sb:goto name))
+  (esb:goto name))
 
 (defun system-browser-browse-package (name)
   (interactive))
@@ -432,7 +432,7 @@
 
 (defun system-browser-toggle-docs ()
   (interactive)
-  (wlf:toggle sb:wm 'documentation))
+  (wlf:toggle esb:wm 'documentation))
 
 (defvar system-browser-mode-map
   (let ((map (make-keymap)))
