@@ -369,6 +369,10 @@
   (sb:update-packages-buffer)
   (wlf:select sb:wm 'packages))
 
+(defun system-browser-reset-layout ()
+  (interactive)
+  (wlf:reset-window-sizes sb:wm))
+
 (defun quit-system-browser ()
   (interactive)
   (kill-buffer sb:packages-buffer)
@@ -425,6 +429,8 @@
     "--"
     ["Refresh browser" system-browser
      :help "Refresh the system browser"]
+    ["Reset layout" system-browser-reset-layout
+     :help "Reset system browser windows layout"]
     ["Toggle documentation panel" system-browser-toggle-docs
      :help "Toggle documentation panel"]
     "--"
