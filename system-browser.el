@@ -392,7 +392,7 @@
            ((string= category "classes") :class)
            ((string= category "generic functions") :generic-function))))
 
-    (slime-eval `(esb:list-definitions ,package ,definition-type))))
+    (slime-eval `(esb:list-definitions ,package ,definition-type :include-internal-p ,esb:list-internal-definitions))))
 
 ;---- Window management ---------------------------
 
@@ -511,6 +511,12 @@
   (interactive)
   (wlf:toggle esb:wm 'documentation))
 
+(defun system-browser-toggle-internal-definitions ()
+  "Toggle internal definitions listing in system browser."
+  (interactive)
+  (setq esb:list-internal-definitions (not esb:list-internal-definitions))
+  (system-browser-refresh))
+
 (defun system-browser-customize ()
   "Customize system browser."
   (interactive)
@@ -548,6 +554,8 @@
      :help "Refresh the system browser"]
     ["Reset layout" system-browser-reset-layout
      :help "Reset system browser windows layout"]
+    ["Toggle internal defintions" system-browser-toggle-internal-definitions
+     :help "Toggle the listing of internal defintions"]
     ["Toggle documentation panel" system-browser-toggle-docs
      :help "Toggle documentation panel"]
     "--"

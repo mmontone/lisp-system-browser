@@ -10,7 +10,7 @@
 
 (in-package :emacs-system-browser)
 
-(defun package-definitions (package-name category)
+(defun package-definitions (package-name category &key include-internal-p)
   (let ((properties-function
           (ecase category
             (:function 'def-properties:function-properties)
@@ -27,10 +27,15 @@
 	    (:generic-function 'def-properties:symbol-generic-function-p))))
     (let (defs
              (package (find-package package-name)))
-      (do-symbols (symbol package)
-        (when (and (eql (symbol-package symbol) package)
-                   (funcall predicate-function symbol))
-          (push (funcall properties-function symbol) defs)))
+      (if include-internal-p
+	  (do-symbols (symbol package)
+	    (when (and (eql (symbol-package symbol) package)
+		       (funcall predicate-function symbol))
+	      (push (funcall properties-function symbol) defs)))
+	  (do-external-symbols (symbol package)
+	    (when (and (eql (symbol-package symbol) package)
+		       (funcall predicate-function symbol))
+	      (push (funcall properties-function symbol) defs))))
       (sort defs 'string< :key (lambda (x) (alexandria:assoc-value x :name))))))
 
 (defun serialize-for-emacs (info)
@@ -47,7 +52,7 @@
 (defun emacs-package-definitions (package-name category)
   (mapcar 'serialize-for-emacs (package-definitions package-name category)))
 
-(defun list-definitions (package-name category)
+(defun list-definitions (package-name category &key include-internal-p)
   (let ((predicate-function
           (ecase category
             (:function 'def-properties:symbol-function-p)
@@ -57,10 +62,15 @@
 	    (:generic-function 'def-properties:symbol-generic-function-p))))
     (let (defs
              (package (find-package package-name)))
-      (do-symbols (symbol package)
-        (when (and (eql (symbol-package symbol) package)
-                   (funcall predicate-function symbol))
-          (push symbol defs)))
+      (if include-internal-p
+	  (do-symbols (symbol package)
+	    (when (and (eql (symbol-package symbol) package)
+		       (funcall predicate-function symbol))
+	      (push symbol defs)))
+	  (do-external-symbols (symbol package)
+	    (when (and (eql (symbol-package symbol) package)
+		       (funcall predicate-function symbol))
+	      (push symbol defs))))
       (sort (mapcar 'symbol-name defs) 'string<))))
 
 (provide 'emacs-system-browser)
