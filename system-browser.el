@@ -1,7 +1,11 @@
 ;;; system-browser.el --- System browser      -*- lexical-binding: t -*-
+;;; Commentary: An Smalltalk-like browser for Common Lisp.
 
 (require 'cl)
 (require 'window-layout)
+
+
+;------ Model ------------------------------------------
 
 (defclass esb:system-browser-system ()
   ((selected-package :accessor esb:selected-package
@@ -55,6 +59,8 @@
 
 ;;(alist-to-plist '((a . 22) (b . "asf")))
 
+;; --------- Settings ---------------------------------
+
 (defgroup system-browser nil
   "System browser configuration")
 
@@ -69,6 +75,26 @@
   :type 'boolean
   :group 'system-browser
   :tag "Downcase definition names")
+
+(defcustom esb:list-internal-definitions t
+  "List packages internal defintions, apart from the exported."
+  :type 'boolean
+  :group 'system-browser
+  :tag "List internal definitions")
+
+(defcustom esb:preserve-definition-buffer-on-exit t
+  "Keep the current system browser definition buffer and file alive when the system browser is closed."
+  :type 'boolean
+  :group 'system-browser
+  :tag "Preserve definition buffer on exit")
+
+(defcustom esb:start-slime-automatically nil
+  "When enabled, SLIME is started automatically when system browser is started."
+  :type 'boolean
+  :group 'system-browser
+  :tag "Start SLIME automatically")
+
+;------- Faces --------------------------
 
 (defface esb:definition-list-item-face
   '((((background light))
@@ -97,6 +123,18 @@
   :group 'system-browser-faces
   )
 
+;-------- Buffers ---------------------------------
+
+(defvar-local esb:system-browser-buffer-type nil)
+
+(defvar esb:mode-line-toggle-docs-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line mouse-1]
+      (lambda (_e)
+        (interactive "e")
+        (wlf:toggle esb:wm 'documentation)))
+    map))
+
 (defun esb:setup-list-buffer ()
   ;; TODO: the following COPY-FACE is global. We need to do something to apply locally.
   (copy-face 'mode-line 'header-line)
@@ -104,8 +142,6 @@
   (setq mode-line-format nil)
   (hl-line-mode)
   (system-browser-mode))
-
-(defvar-local esb:system-browser-buffer-type nil)
 
 (defun esb:initialize-packages-buffer ()
   (setq esb:packages-buffer (get-buffer-create "*esb-packages*"))
@@ -131,14 +167,6 @@
     (when (esb:definitions-buffer-mode-line-format esb:current-browser-system)
       (setq header-line-format (esb:definitions-buffer-mode-line-format esb:current-browser-system)))
     (setq esb:system-browser-buffer-type 'definitions)))
-
-(defvar esb:mode-line-toggle-docs-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mode-line mouse-1]
-      (lambda (_e)
-        (interactive "e")
-        (wlf:toggle esb:wm 'documentation)))
-    map))
 
 (defun esb:initialize-definition-buffer ()
   (setq esb:definition-buffer (get-buffer-create "*esb-definition*"))
@@ -366,10 +394,12 @@
 
     (slime-eval `(esb:list-definitions ,package ,definition-type))))
 
+;---- Window management ---------------------------
+
 (defvar esb:wm)
 
 (defun esb:initialize-windows ()
-  ;; Mark selection windows as dedicated
+  "Mark selection windows as dedicated."
   (let ((winfo-list (wlf:wset-winfo-list esb:wm)))
     (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'packages winfo-list)) t)
     (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'categories winfo-list)) t)
@@ -379,40 +409,53 @@
   "Open the currently instantiated system browser."
   (interactive)
 
-  (esb:initialize-packages-buffer)
-  (esb:initialize-categories-buffer)
-  (esb:initialize-definitions-buffer)
-  (esb:initialize-definition-buffer)
-  (esb:initialize-documentation-buffer)
+  (block system-browser
 
-  (setq esb:wm
-        (wlf:layout
-         '(| (:left-size-ratio 0.20)
-             (- (:left-size-ratio 0.33)
-                packages
-                (- categories
-                   definitions))
-             (- (:left-size-ratio 0.66)
-                definition
-                documentation))
-         '((:name packages
-                  :buffer "*esb-packages*")
-           (:name categories
-                  :buffer "*esb-categories*")
-           (:name definitions
-                  :buffer "*esb-definitions*")
-           (:name definition
-                  :buffer "*esb-definition*")
-           (:name documentation
-                  :buffer "*esb-documentation*")
-           )))
+    ;; Start SLIME if needed
+    (when (not (slime-connected-p))
+      (when (or esb:start-slime-automatically
+		(yes-or-no-p "SLIME is not connected. Start? "))
+	(add-hook 'slime-connected-hook 'system-browser)
+	(slime))
+      (return-from system-browser))
 
-  (when (not esb:show-documentation-buffer)
-    (wlf:hide esb:wm 'documentation))
+    ;; Initialize system browser buffers
+    (esb:initialize-packages-buffer)
+    (esb:initialize-categories-buffer)
+    (esb:initialize-definitions-buffer)
+    (esb:initialize-definition-buffer)
+    (esb:initialize-documentation-buffer)
 
-  (esb:initialize-windows)
-  (esb:update-packages-buffer)
-  (wlf:select esb:wm 'packages))
+    (setq esb:wm
+          (wlf:layout
+           '(| (:left-size-ratio 0.20)
+               (- (:left-size-ratio 0.33)
+                  packages
+                  (- categories
+                     definitions))
+               (- (:left-size-ratio 0.66)
+                  definition
+                  documentation))
+           '((:name packages
+                    :buffer "*esb-packages*")
+             (:name categories
+                    :buffer "*esb-categories*")
+             (:name definitions
+                    :buffer "*esb-definitions*")
+             (:name definition
+                    :buffer "*esb-definition*")
+             (:name documentation
+                    :buffer "*esb-documentation*")
+             )))
+
+    (when (not esb:show-documentation-buffer)
+      (wlf:hide esb:wm 'documentation))
+
+    (esb:initialize-windows)
+    (esb:update-packages-buffer)
+    (wlf:select esb:wm 'packages)))
+
+;------- Commands ------------------------------------------------
 
 (defun lisp-system-browser ()
   "Open the Common Lisp system browser."
@@ -468,6 +511,18 @@
   (interactive)
   (wlf:toggle esb:wm 'documentation))
 
+(defun system-browser-customize ()
+  "Customize system browser."
+  (interactive)
+  (customize-group 'system-browser))
+
+(defun system-browser-help ()
+  "Show help about system browser."
+  (interactive)
+  (apropos-command "system-browser"))
+
+;------ Menu ----------------------------
+
 (defvar system-browser-mode-map
   (let ((map (make-keymap)))
     (define-key map "C-q" 'quit-system-browser)
@@ -496,8 +551,14 @@
     ["Toggle documentation panel" system-browser-toggle-docs
      :help "Toggle documentation panel"]
     "--"
+    ["Settings" system-browser-customize
+     :help "Customize system browser"]
+    ["Help" system-browser-help
+     :help "Help on system browser"]
     ["Quit" quit-system-browser
      :help "Quit System Browser"]))
+
+;------ SLIME --------------------------------------------
 
 (define-slime-contrib system-browser
   "Smalltalk-like system browser for Common Lisp"
@@ -506,3 +567,5 @@
   (:swank-dependencies emacs-system-browser))
 
 (provide 'system-browser)
+
+;;; system-browser.el ends here
