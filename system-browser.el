@@ -329,7 +329,7 @@
            ((string= category "generic functions") 'def-properties:generic-function-properties)
            (t (error "Invalid category: %s" category))
            )))
-    (let* ((definition-properties (slime-eval `(esb:serialize-for-emacs (,definition-function ',(make-symbol (concat package "::" definition)) t))))
+    (let* ((definition-properties (slime-eval `(esb:serialize-for-emacs (,definition-function ',(intern (concat package "::" definition)) t))))
            (source (find :source definition-properties :key 'car))
            (file (and source (or
                               (cadr (find :file (remove-if-not 'listp source) :key 'car))
@@ -368,7 +368,7 @@
            ((string= category "macros") 'def-properties:macro-properties)
            ((string= category "classes") 'def-properties:class-properties)
            ((string= category "generic functions") 'def-properties:generic-function-properties))))
-    (let* ((definition-properties (slime-eval `(esb::serialize-for-emacs (,definition-function ',(make-symbol (concat package "::" definition)) t))))
+    (let* ((definition-properties (slime-eval `(esb::serialize-for-emacs (,definition-function ',(intern (concat package "::" definition)) t))))
            (documentation (cdr (assoc :documentation definition-properties)))
            (contents (or documentation "This definition is not documented.")))
       (when (eql definition-type :variable)
