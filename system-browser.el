@@ -476,6 +476,7 @@
   (kill-buffer esb:categories-buffer)
   (kill-buffer esb:definitions-buffer)
   (kill-buffer esb:definition-buffer)
+  (kill-buffer esb:documentation-buffer)
   (wlf:clear-windows esb:wm t))
 
 (defun esb:read-name ()
