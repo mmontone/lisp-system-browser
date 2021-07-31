@@ -12,13 +12,13 @@ Load `swank` and add this repository path to `swank::*load-path*`, in your Lisp 
 
 ```lisp
 (require :swank)
-(push #p"/home/marian/src/lisp/lisp-system-browser/" swank::*load-path*)
+(push #p"~/lisp-system-browser/" swank::*load-path*)
 ```
 
 In Emacs, add this repository path to `load-path` and `system-browser` to `slime-contribs` in `~/.emacs` init file, like:
 
 ```
-(push "/home/marian/src/lisp/lisp-system-browser" load-path)
+(push "~/lisp-system-browser" load-path)
 
 (setq slime-contribs '(slime-fancy system-browser))
 
