@@ -396,7 +396,28 @@
 (defvar esb:wm)
 
 (defun esb:initialize-windows ()
-  "Mark selection windows as dedicated."
+  (setq esb:wm
+          (wlf:layout
+           '(| (:left-size-ratio 0.20)
+               (- (:left-size-ratio 0.33)
+                  packages
+                  (- categories
+                     definitions))
+               (- (:left-size-ratio 0.66)
+                  definition
+                  documentation))
+           '((:name packages
+                    :buffer "*esb-packages*")
+             (:name categories
+                    :buffer "*esb-categories*")
+             (:name definitions
+                    :buffer "*esb-definitions*")
+             (:name definition
+                    :buffer "*esb-definition*")
+             (:name documentation
+                    :buffer "*esb-documentation*")
+             )))
+  ;; Mark selection windows as dedicated
   (let ((winfo-list (wlf:wset-winfo-list esb:wm)))
     (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'packages winfo-list)) t)
     (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'categories winfo-list)) t)
@@ -423,32 +444,11 @@
     (esb:initialize-definition-buffer)
     (esb:initialize-documentation-buffer)
 
-    (setq esb:wm
-          (wlf:layout
-           '(| (:left-size-ratio 0.20)
-               (- (:left-size-ratio 0.33)
-                  packages
-                  (- categories
-                     definitions))
-               (- (:left-size-ratio 0.66)
-                  definition
-                  documentation))
-           '((:name packages
-                    :buffer "*esb-packages*")
-             (:name categories
-                    :buffer "*esb-categories*")
-             (:name definitions
-                    :buffer "*esb-definitions*")
-             (:name definition
-                    :buffer "*esb-definition*")
-             (:name documentation
-                    :buffer "*esb-documentation*")
-             )))
+    (esb:initialize-windows)
 
     (when (not esb:show-documentation-buffer)
       (wlf:hide esb:wm 'documentation))
 
-    (esb:initialize-windows)
     (esb:update-packages-buffer)
     (wlf:select esb:wm 'packages)))
 
