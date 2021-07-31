@@ -249,8 +249,12 @@
                                   (cadr (find :offset (remove-if-not 'listp source) :key 'car))
                                   )))
            (documentation (cdr (assoc :documentation package-properties))))
+
+      ;; Show package definition source in definition buffer
       (if (and file position)
           (progn
+	    (when (not (buffer-live-p esb:definition-buffer))
+	      (esb:initialize-definition-buffer))
             (esb:set-definition-buffer-file file position)
             (esb:set-documentation-buffer-contents (or documentation "This package is not documented."))
 	    (esb:select-category package (first categories)))
@@ -302,7 +306,7 @@
       (insert-file-contents file)
       ;; Assign file to buffer so changes in definition buffer can be saved
       (setq buffer-file-name file)
-      (setq default-directory file)
+      (setq default-directory (file-name-directory file))
       ;; For some reason, sometimes definition buffer sets to read-only.
       ;; The following prevents that:
       (setq buffer-read-only nil)
@@ -312,6 +316,8 @@
         (recenter-top-bottom 0)))))
 
 (defun esb:update-definition-buffer (package category definition)
+  (when (not (buffer-live-p esb:definition-buffer))
+    (esb:initialize-definition-buffer))
   (let ((definition-type
           (cond
            ((string= category "functions") :function)
