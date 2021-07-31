@@ -433,7 +433,7 @@
     (when (not (slime-connected-p))
       (when (or esb:start-slime-automatically
 		(yes-or-no-p "SLIME is not connected. Start? "))
-	(add-hook 'slime-connected-hook 'system-browser)
+	(add-hook 'slime-connected-hook 'system-browser t)
 	(slime))
       (return-from system-browser))
 
