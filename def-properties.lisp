@@ -130,6 +130,35 @@ Returns a list of alists of properties, one alist for each type of definition th
 will make documentation for slots in conditions work properly."
         (slot-value slotd 'sb-pcl::%documentation))
 
+;; SWANK CCL patch
+
+#+ccl
+(swank/ccl::defimplementation swank::describe-symbol-for-emacs (symbol)
+  (let ((result '()))
+    (flet ((doc (kind &optional (sym symbol))
+             (or (documentation sym kind) :not-documented))
+           (maybe-push (property value)
+             (when value
+               (setf result (list* property value result)))))
+      (maybe-push
+       :variable (when (boundp symbol)
+                   (doc 'variable)))
+      (maybe-push
+       :macro (when (macro-function symbol)
+                (doc 'function)))
+      (maybe-push
+       :function (if (and (not (macro-function symbol)) (fboundp symbol))
+                     (doc 'function)))
+      (maybe-push
+       :setf (let ((setf-function-name (ccl:setf-function-spec-name
+                                        `(setf ,symbol))))
+               (when (fboundp setf-function-name)
+                 (doc 'function setf-function-name))))
+      (maybe-push
+       :type (when (ccl:type-specifier-p symbol)
+               (doc 'type)))
+      result)))
+
 ;; Some Swank backends support getting the source location of a SYMBOL, and others not. 
 #-sbcl
 (defun variable-source-location (name)
