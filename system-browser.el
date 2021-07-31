@@ -50,15 +50,6 @@
 
 (defvar esb:current-browser-system (make-instance 'esb:common-lisp-system))
 
-(defun alist-to-plist (alist)
-  (let ((plist '()))
-    (dolist (cons alist)
-      (push (car cons) plist)
-      (push (cdr cons) plist))
-    (reverse plist)))
-
-;;(alist-to-plist '((a . 22) (b . "asf")))
-
 ;; --------- Settings ---------------------------------
 
 (defgroup system-browser nil
