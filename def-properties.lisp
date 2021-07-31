@@ -130,6 +130,25 @@ Returns a list of alists of properties, one alist for each type of definition th
 will make documentation for slots in conditions work properly."
         (slot-value slotd 'sb-pcl::%documentation))
 
+;; Some Swank backends support getting the source location of a SYMBOL, and others not. 
+#-sbcl
+(defun variable-source-location (name)
+  (swank/backend:find-source-location name))
+
+#+sbcl
+(defun variable-source-location (name)
+  (alexandria:when-let ((definition-source (first (sb-introspect:find-definition-sources-by-name name :variable))))
+    (swank/sbcl::definition-source-for-emacs definition-source :variable name)))
+
+#-sbcl
+(defun macro-source-location (name)
+  (swank/backend:find-source-location name))
+
+#+sbcl
+(defun macro-source-location (name)
+  (alexandria:when-let ((definition-source (first (sb-introspect:find-definition-sources-by-name name :macro))))
+    (swank/sbcl::definition-source-for-emacs definition-source :macro name)))
+
 (defun assoc-cdr (key data &key error-p)
   "Return (CDR (ASSOC KEY DATA)). If ERROR-P is non-NIL, signal an error if KEY is
 not available is DATA."
@@ -210,26 +229,6 @@ not available is DATA."
 	(cons :source (swank/backend:find-source-location (symbol-function symbol)))
         (unless shallow
           (cons :methods (closer-mop:generic-function-methods (symbol-function symbol))))))
-
-;; There must be a better way of getting the source location of a variable ...
-#-sbcl
-(defun variable-source-location (name)
-  nil)
-
-#+sbcl
-(defun variable-source-location (name)
-  (alexandria:when-let ((definition-source (first (sb-introspect:find-definition-sources-by-name name :variable))))
-    (swank/sbcl::definition-source-for-emacs definition-source :variable name)))
-
-;; There must be a better way of getting the source location of a macro ...
-#-sbcl
-(defun macro-source-location (name)
-  nil)
-
-#+sbcl
-(defun macro-source-location (name)
-  (alexandria:when-let ((definition-source (first (sb-introspect:find-definition-sources-by-name name :macro))))
-    (swank/sbcl::definition-source-for-emacs definition-source :macro name)))
 
 (defun variable-properties (symbol &optional shallow)
   (list (cons :name symbol)
