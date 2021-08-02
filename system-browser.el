@@ -496,8 +496,18 @@
   (interactive (list (slime-read-package-name "Browse package: ")))
   (esb:select-package package-name))
 
-(defun system-browser-browse-definition (name)
-  (interactive))
+(defun system-browser-browse-definition (definition-name)
+  "Browse a definition in current package and category."
+  (interactive (list (completing-read "Browse definition: "
+				      (esb:list-definitions
+				       esb:current-browser-system
+				       (esb:selected-package esb:current-browser-system)
+				       (esb:selected-category esb:current-browser-system))
+				      nil t)))
+  (esb:select-definition
+   (esb:selected-package esb:current-browser-system)
+   (esb:selected-category esb:current-browser-system)
+   definition-name))
 
 (defun system-browser-refresh ()
   "Refresh the system browser contents and reset its layout."
