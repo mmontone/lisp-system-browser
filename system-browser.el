@@ -207,7 +207,7 @@
     (esb:select-package (first packages))))
 
 (defun esb:select-package (package)
-  ;;(oset esb:current-browser-system selected-package package)
+  (oset esb:current-browser-system selected-package package)
   (esb:update-categories-buffer package))
 
 (defun esb:update-categories-buffer (package)
@@ -253,7 +253,7 @@
         ))))
 
 (defun esb:select-category (package category)
-  ;;(oset esb:current-browser-system selected-category  category)
+  (oset esb:current-browser-system selected-category  category)
   (esb:update-definitions-buffer package category))
 
 (defun esb:update-definitions-buffer (package category)
@@ -278,7 +278,7 @@
   (wlf:select esb:wm 'definitions))
 
 (defun esb:select-definition (package category definition)
-  ;;(oset esb:current-browser-system selected-definition definition)
+  (oset esb:current-browser-system selected-definition definition)
   (esb:update-definition-buffer package category definition)
   (esb:update-documentation-buffer package category definition))
 
