@@ -5,15 +5,15 @@
 (require 'window-layout)
 
 
-;------ Model ------------------------------------------
+                                        ;------ Model ------------------------------------------
 
 (defclass esb:system-browser-system ()
   ((selected-package :accessor esb:selected-package
-		     :initform nil)
+                     :initform nil)
    (selected-category :accessor esb:selected-category
-		      :initform nil)
+                      :initform nil)
    (selected-definition :accessor esb:selected-definition
-			:initform nil)))
+                        :initform nil)))
 
 (defclass esb:common-lisp-system (esb:system-browser-system)
   ())
@@ -85,7 +85,7 @@
   :group 'system-browser
   :tag "Start SLIME automatically")
 
-;------- Faces --------------------------
+                                        ;------- Faces --------------------------
 
 (defface esb:definition-list-item-face
   '((((background light))
@@ -114,7 +114,7 @@
   :group 'system-browser-faces
   )
 
-;-------- Buffers ---------------------------------
+                                        ;-------- Buffers ---------------------------------
 
 (defvar-local esb:system-browser-buffer-type nil)
 
@@ -196,7 +196,7 @@
                            (downcase package-name)
                          package-name)
                        'action (lambda (btn)
-				 (esb:select-package package-name))
+                                 (esb:select-package package-name))
                        'face 'esb:definition-list-item-face
                        'follow-link t
                        'help-echo "Browse package")
@@ -244,11 +244,11 @@
       ;; Show package definition source in definition buffer
       (if (and file position)
           (progn
-	    (when (not (buffer-live-p esb:definition-buffer))
-	      (esb:initialize-definition-buffer))
+            (when (not (buffer-live-p esb:definition-buffer))
+              (esb:initialize-definition-buffer))
             (esb:set-definition-buffer-file file position)
             (esb:set-documentation-buffer-contents (or documentation "This package is not documented."))
-	    (esb:select-category package (first categories)))
+            (esb:select-category package (first categories)))
         (message "Definition source not found.")
         ))))
 
@@ -268,7 +268,7 @@
                          (downcase definition)
                        definition)
                      'action (lambda (btn)
-			       (esb:select-definition package category definition))
+                               (esb:select-definition package category definition))
                      'face 'esb:definition-list-item-face
                      'follow-link t
                      'help-echo "Browse definition")
@@ -391,32 +391,32 @@
 
     (slime-eval `(esb:list-definitions ,package ,definition-type :include-internal-p ,esb:list-internal-definitions))))
 
-;---- Window management ---------------------------
+                                        ;---- Window management ---------------------------
 
 (defvar esb:wm)
 
 (defun esb:initialize-windows ()
   (setq esb:wm
-          (wlf:layout
-           '(| (:left-size-ratio 0.20)
-               (- (:left-size-ratio 0.33)
-                  packages
-                  (- categories
-                     definitions))
-               (- (:left-size-ratio 0.66)
-                  definition
-                  documentation))
-           '((:name packages
-                    :buffer "*esb-packages*")
-             (:name categories
-                    :buffer "*esb-categories*")
-             (:name definitions
-                    :buffer "*esb-definitions*")
-             (:name definition
-                    :buffer "*esb-definition*")
-             (:name documentation
-                    :buffer "*esb-documentation*")
-             )))
+        (wlf:layout
+         '(| (:left-size-ratio 0.20)
+             (- (:left-size-ratio 0.33)
+                packages
+                (- categories
+                   definitions))
+             (- (:left-size-ratio 0.66)
+                definition
+                documentation))
+         '((:name packages
+                  :buffer "*esb-packages*")
+           (:name categories
+                  :buffer "*esb-categories*")
+           (:name definitions
+                  :buffer "*esb-definitions*")
+           (:name definition
+                  :buffer "*esb-definition*")
+           (:name documentation
+                  :buffer "*esb-documentation*")
+           )))
   ;; Mark selection windows as dedicated
   (let ((winfo-list (wlf:wset-winfo-list esb:wm)))
     (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'packages winfo-list)) t)
@@ -432,9 +432,9 @@
     ;; Start SLIME if needed
     (when (not (slime-connected-p))
       (when (or esb:start-slime-automatically
-		(yes-or-no-p "SLIME is not connected. Start? "))
-	(add-hook 'slime-connected-hook 'system-browser t)
-	(slime))
+                (yes-or-no-p "SLIME is not connected. Start? "))
+        (add-hook 'slime-connected-hook 'system-browser t)
+        (slime))
       (return-from system-browser))
 
     ;; Initialize system browser buffers
@@ -452,7 +452,7 @@
     (esb:update-packages-buffer)
     (wlf:select esb:wm 'packages)))
 
-;------- Commands ------------------------------------------------
+                                        ;------- Commands ------------------------------------------------
 
 (defun lisp-system-browser ()
   "Open the Common Lisp system browser."
@@ -499,13 +499,13 @@
 (defun system-browser-browse-definition (definition-name)
   "Browse a definition in current package and category."
   (interactive (list (completing-read (format "Browse definition in %s %s: "
-					      (esb:selected-package esb:current-browser-system)
-					      (esb:selected-category esb:current-browser-system))
-				      (esb:list-definitions
-				       esb:current-browser-system
-				       (esb:selected-package esb:current-browser-system)
-				       (esb:selected-category esb:current-browser-system))
-				      nil t)))
+                                              (esb:selected-package esb:current-browser-system)
+                                              (esb:selected-category esb:current-browser-system))
+                                      (esb:list-definitions
+                                       esb:current-browser-system
+                                       (esb:selected-package esb:current-browser-system)
+                                       (esb:selected-category esb:current-browser-system))
+                                      nil t)))
   (esb:select-definition
    (esb:selected-package esb:current-browser-system)
    (esb:selected-category esb:current-browser-system)
@@ -515,19 +515,19 @@
   "Select next package in system browser."
   (interactive)
   (let* ((packages (esb:list-packages esb:current-browser-system))
-	 (package (esb:selected-package esb:current-browser-system))
-	 (position (position package packages :test 'string=))
-	 (next-package (nth (1+ position) package-list)))
+         (package (esb:selected-package esb:current-browser-system))
+         (position (position package packages :test 'string=))
+         (next-package (nth (1+ position) package-list)))
     (when next-package
       (esb:select-package next-package))))
-    
+
 (defun system-browser-prev-package ()
   "Select previous package in system browser."
   (interactive)
   (let* ((packages (esb:list-packages esb:current-browser-system))
-	 (package (esb:selected-package esb:current-browser-system))
-	 (position (position package packages :test 'string=))
-	 (prev-package (nth (1- position) package-list)))
+         (package (esb:selected-package esb:current-browser-system))
+         (position (position package packages :test 'string=))
+         (prev-package (nth (1- position) package-list)))
     (when prev-package
       (esb:select-package prev-package))))
 
@@ -535,25 +535,55 @@
   "Select next category in system browser."
   (interactive)
   (let* ((categories (esb:list-categories esb:current-browser-system
-					  (esb:selected-package esb:current-browser-system)))
-	 (category (esb:selected-category esb:current-browser-system))
-	 (position (position category categories :test 'string=))
-	 (next-category (nth (1+ position) categories)))
+                                          (esb:selected-package esb:current-browser-system)))
+         (category (esb:selected-category esb:current-browser-system))
+         (position (position category categories :test 'string=))
+         (next-category (nth (1+ position) categories)))
     (when next-category
       (esb:select-category (esb:selected-package esb:current-browser-system)
-			   next-category))))
+                           next-category))))
 
 (defun system-browser-prev-category ()
   "Select previous category in system browser."
   (interactive)
   (let* ((categories (esb:list-categories esb:current-browser-system
-					  (esb:selected-package esb:current-browser-system)))
-	 (category (esb:selected-category esb:current-browser-system))
-	 (position (position category categories :test 'string=))
-	 (next-category (nth (1- position) categories)))
-    (when next-category
+                                          (esb:selected-package esb:current-browser-system)))
+         (category (esb:selected-category esb:current-browser-system))
+         (position (position category categories :test 'string=))
+         (prev-category (nth (1- position) categories)))
+    (when prev-category
       (esb:select-category (esb:selected-package esb:current-browser-system)
-			   next-category))))
+                           prev-category))))
+
+(defun system-browser-next-definition ()
+  "Select next definition in system browser."
+  (interactive)
+  (let* ((definitions (esb:list-definitions esb:current-browser-system
+                                            (esb:selected-package esb:current-browser-system)
+                                            (esb:selected-category esb:current-browser-system)))
+         (definition (esb:selected-definition esb:current-browser-system))
+         (position (position definition definitions :test 'string=))
+         (next-definition (nth (1+ position) definitions)))
+    (when next-definition
+      (esb:select-definition
+       (esb:selected-package esb:current-browser-system)
+       (esb:selected-category esb:current-browser-system)
+       next-definition))))
+
+(defun system-browser-prev-definition ()
+  "Select previous definition in system browser."
+  (interactive)
+  (let* ((definitions (esb:list-definitions esb:current-browser-system
+                                            (esb:selected-package esb:current-browser-system)
+                                            (esb:selected-category esb:current-browser-system)))
+         (definition (esb:selected-definition esb:current-browser-system))
+         (position (position definition definitions :test 'string=))
+         (prev-definition (nth (1- position) definitions)))
+    (when prev-definition
+      (esb:select-definition
+       (esb:selected-package esb:current-browser-system)
+       (esb:selected-category esb:current-browser-system)
+       prev-definition))))
 
 (defun system-browser-refresh ()
   "Refresh the system browser contents and reset its layout."
@@ -581,7 +611,7 @@
   (interactive)
   (apropos-command "system-browser"))
 
-;------ Menu ----------------------------
+                                        ;------ Menu ----------------------------
 
 (defvar system-browser-mode-map
   (let ((map (make-keymap)))
@@ -620,7 +650,7 @@
     ["Quit" quit-system-browser
      :help "Quit System Browser"]))
 
-;------ SLIME --------------------------------------------
+                                        ;------ SLIME --------------------------------------------
 
 (define-slime-contrib system-browser
   "Smalltalk-like system browser for Common Lisp"
