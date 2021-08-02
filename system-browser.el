@@ -1,11 +1,12 @@
 ;;; system-browser.el --- System browser      -*- lexical-binding: t -*-
 ;;; Commentary: An Smalltalk-like browser for Common Lisp.
 
+;;; Code:
+
 (require 'cl)
 (require 'window-layout)
 
-
-                                        ;------ Model ------------------------------------------
+;;------ Model ------------------------------------------
 
 (defclass esb:system-browser-system ()
   ((selected-package :accessor esb:selected-package
@@ -50,7 +51,7 @@
 
 (defvar esb:current-browser-system (make-instance 'esb:common-lisp-system))
 
-;; --------- Settings ---------------------------------
+;;--------- Settings ---------------------------------
 
 (defgroup system-browser nil
   "System browser configuration")
@@ -85,7 +86,7 @@
   :group 'system-browser
   :tag "Start SLIME automatically")
 
-                                        ;------- Faces --------------------------
+;;------- Faces --------------------------
 
 (defface esb:definition-list-item-face
   '((((background light))
@@ -114,7 +115,7 @@
   :group 'system-browser-faces
   )
 
-                                        ;-------- Buffers ---------------------------------
+;;-------- Buffers ---------------------------------
 
 (defvar-local esb:system-browser-buffer-type nil)
 
@@ -126,18 +127,19 @@
         (wlf:toggle esb:wm 'documentation)))
     map))
 
-(defun esb:setup-list-buffer ()
+(defun esb:setup-selection-list-buffer ()
   ;; TODO: the following COPY-FACE is global. We need to do something to apply locally.
   (copy-face 'mode-line 'header-line)
   (setq header-line-format mode-line-format)
   (setq mode-line-format nil)
   (hl-line-mode)
-  (system-browser-mode))
+  (system-browser-mode)
+  (system-browser-sel-mode))
 
 (defun esb:initialize-packages-buffer ()
   (setq esb:packages-buffer (get-buffer-create "*esb-packages*"))
   (with-current-buffer esb:packages-buffer
-    (esb:setup-list-buffer)
+    (esb:setup-selection-list-buffer)
     (when (esb:packages-buffer-mode-line-format esb:current-browser-system)
       (setq header-line-format (esb:packages-buffer-mode-line-format esb:current-browser-system)))
     (setq esb:system-browser-buffer-type 'packages)
@@ -146,7 +148,7 @@
 (defun esb:initialize-categories-buffer ()
   (setq esb:categories-buffer (get-buffer-create "*esb-categories*"))
   (with-current-buffer esb:categories-buffer
-    (esb:setup-list-buffer)
+    (esb:setup-selection-list-buffer)
     (when (esb:categories-buffer-mode-line-format esb:current-browser-system)
       (setq header-line-format (esb:categories-buffer-mode-line-format esb:current-browser-system)))
     (setq esb:system-browser-buffer-type 'categories)))
@@ -154,7 +156,7 @@
 (defun esb:initialize-definitions-buffer ()
   (setq esb:definitions-buffer (get-buffer-create "*esb-definitions*"))
   (with-current-buffer esb:definitions-buffer
-    (esb:setup-list-buffer)
+    (esb:setup-selection-list-buffer)
     (when (esb:definitions-buffer-mode-line-format esb:current-browser-system)
       (setq header-line-format (esb:definitions-buffer-mode-line-format esb:current-browser-system)))
     (setq esb:system-browser-buffer-type 'definitions)))
@@ -391,7 +393,7 @@
 
     (slime-eval `(esb:list-definitions ,package ,definition-type :include-internal-p ,esb:list-internal-definitions))))
 
-                                        ;---- Window management ---------------------------
+;;---- Window management ---------------------------
 
 (defvar esb:wm)
 
@@ -452,7 +454,7 @@
     (esb:update-packages-buffer)
     (wlf:select esb:wm 'packages)))
 
-                                        ;------- Commands ------------------------------------------------
+;;------- Commands ------------------------------------------------
 
 (defun lisp-system-browser ()
   "Open the Common Lisp system browser."
@@ -475,21 +477,6 @@
   (kill-buffer esb:definition-buffer)
   (kill-buffer esb:documentation-buffer)
   (wlf:clear-windows esb:wm t))
-
-(defun esb:read-name ()
-  (case esb:system-browser-buffer-type
-    (package (slime-read-package-name "Package: "))
-    (definitions (slime-read-symbol-name "Symbol: "))))
-
-;; (defun esb:goto (name)
-;;   (case esb:system-browser-buffer-type
-;;     (package (esb:update-categories-buffer name))
-;;     (definitions (esb:update-definition-buffer))))
-
-;; (defun system-browser-goto (name)
-;;   (interactive (list (esb:read-name)))
-
-;;   (esb:goto name))
 
 (defun system-browser-browse-package (package-name)
   "Browse a particular package completed from command bar."
@@ -517,7 +504,7 @@
   (let* ((packages (esb:list-packages esb:current-browser-system))
          (package (esb:selected-package esb:current-browser-system))
          (position (position package packages :test 'string=))
-         (next-package (nth (1+ position) package-list)))
+         (next-package (nth (1+ position) packages)))
     (when next-package
       (esb:select-package next-package))))
 
@@ -585,6 +572,23 @@
        (esb:selected-category esb:current-browser-system)
        prev-definition))))
 
+(defun system-browser-next-selection ()
+  "Select next item in system browser selection buffer."
+  (interactive)
+  (case esb:system-browser-buffer-type
+    (packages (system-browser-next-package))
+    (categories (system-browser-next-category))
+    (definitions (system-browser-next-definition))
+    (t (error "Invalid buffer"))))
+
+(defun system-browser-prev-selection ()
+  "Select previous item in system browser selection buffer."
+  (interactive)
+  (case esb:system-browser-buffer-type
+    (packages (system-browser-prev-package))
+    (categories (system-browser-prev-category))
+    (definitions (system-browser-prev-definition))))
+
 (defun system-browser-refresh ()
   "Refresh the system browser contents and reset its layout."
   (interactive)
@@ -611,7 +615,7 @@
   (interactive)
   (apropos-command "system-browser"))
 
-                                        ;------ Menu ----------------------------
+;;------ Menu ----------------------------
 
 (defvar system-browser-mode-map
   (let ((map (make-keymap)))
@@ -650,7 +654,20 @@
     ["Quit" quit-system-browser
      :help "Quit System Browser"]))
 
-                                        ;------ SLIME --------------------------------------------
+(defvar system-browser-sel-mode-map
+  (let ((map (make-keymap)))
+    (define-key map "M-p" 'system-browser-prev-selection)
+    (define-key map "M-n" 'system-browser-next-selection)
+    map))
+
+(define-minor-mode system-browser-sel-mode
+  "Minor mode for Emacs System Browser selection list buffers."
+  :init-value nil
+  :lighter " system-browser-sel"
+  :keymap system-browser-sel-mode-map
+  :group 'system-browser-sel)
+
+;;------ SLIME --------------------------------------------
 
 (define-slime-contrib system-browser
   "Smalltalk-like system browser for Common Lisp"
