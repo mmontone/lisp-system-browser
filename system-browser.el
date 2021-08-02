@@ -261,8 +261,7 @@
     (setq buffer-read-only nil)
     (erase-buffer)
     (insert (propertize category 'face
-                        'esb:definitions-list-header-face
-                        ))
+                        'esb:definitions-list-header-face))
     (newline)
     (dolist (definition (esb:list-definitions esb:current-browser-system package category))
       (insert-button (if esb:downcase-definition-names
@@ -275,7 +274,8 @@
                      'help-echo "Browse definition")
       (newline))
     (setq buffer-read-only t))
-  (wlf:select esb:wm 'definitions))
+  (wlf:select esb:wm 'definitions)
+  (goto-char 1))
 
 (defun esb:select-definition (package category definition)
   (oset esb:current-browser-system selected-definition definition)
@@ -514,22 +514,46 @@
 (defun system-browser-next-package ()
   "Select next package in system browser."
   (interactive)
-  (let* ((package-list (esb:list-packages esb:current-browser-system))
+  (let* ((packages (esb:list-packages esb:current-browser-system))
 	 (package (esb:selected-package esb:current-browser-system))
-	 (position (position package package-list :test 'string=))
+	 (position (position package packages :test 'string=))
 	 (next-package (nth (1+ position) package-list)))
     (when next-package
       (esb:select-package next-package))))
     
-(defun system-browser-previous-package ()
+(defun system-browser-prev-package ()
   "Select previous package in system browser."
   (interactive)
-  (let* ((package-list (esb:list-packages esb:current-browser-system))
+  (let* ((packages (esb:list-packages esb:current-browser-system))
 	 (package (esb:selected-package esb:current-browser-system))
-	 (position (position package package-list :test 'string=))
+	 (position (position package packages :test 'string=))
 	 (prev-package (nth (1- position) package-list)))
     (when prev-package
       (esb:select-package prev-package))))
+
+(defun system-browser-next-category ()
+  "Select next category in system browser."
+  (interactive)
+  (let* ((categories (esb:list-categories esb:current-browser-system
+					  (esb:selected-package esb:current-browser-system)))
+	 (category (esb:selected-category esb:current-browser-system))
+	 (position (position category categories :test 'string=))
+	 (next-category (nth (1+ position) categories)))
+    (when next-category
+      (esb:select-category (esb:selected-package esb:current-browser-system)
+			   next-category))))
+
+(defun system-browser-prev-category ()
+  "Select previous category in system browser."
+  (interactive)
+  (let* ((categories (esb:list-categories esb:current-browser-system
+					  (esb:selected-package esb:current-browser-system)))
+	 (category (esb:selected-category esb:current-browser-system))
+	 (position (position category categories :test 'string=))
+	 (next-category (nth (1- position) categories)))
+    (when next-category
+      (esb:select-category (esb:selected-package esb:current-browser-system)
+			   next-category))))
 
 (defun system-browser-refresh ()
   "Refresh the system browser contents and reset its layout."
