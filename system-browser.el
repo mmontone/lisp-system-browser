@@ -511,6 +511,26 @@
    (esb:selected-category esb:current-browser-system)
    definition-name))
 
+(defun system-browser-next-package ()
+  "Select next package in system browser."
+  (interactive)
+  (let* ((package-list (esb:list-packages esb:current-browser-system))
+	 (package (esb:selected-package esb:current-browser-system))
+	 (position (position package package-list :test 'string=))
+	 (next-package (nth (1+ position) package-list)))
+    (when next-package
+      (esb:select-package next-package))))
+    
+(defun system-browser-previous-package ()
+  "Select previous package in system browser."
+  (interactive)
+  (let* ((package-list (esb:list-packages esb:current-browser-system))
+	 (package (esb:selected-package esb:current-browser-system))
+	 (position (position package package-list :test 'string=))
+	 (prev-package (nth (1- position) package-list)))
+    (when prev-package
+      (esb:select-package prev-package))))
+
 (defun system-browser-refresh ()
   "Refresh the system browser contents and reset its layout."
   (interactive)
