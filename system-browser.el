@@ -498,7 +498,9 @@
 
 (defun system-browser-browse-definition (definition-name)
   "Browse a definition in current package and category."
-  (interactive (list (completing-read "Browse definition: "
+  (interactive (list (completing-read (format "Browse definition in %s %s: "
+					      (esb:selected-package esb:current-browser-system)
+					      (esb:selected-category esb:current-browser-system))
 				      (esb:list-definitions
 				       esb:current-browser-system
 				       (esb:selected-package esb:current-browser-system)
