@@ -471,11 +471,15 @@
 (defun quit-system-browser ()
   "Quit the system browser."
   (interactive)
+
+  ;; Try killing the definition buffer first, as it may have been modified
+  (kill-buffer esb:definition-buffer)
+  
   (kill-buffer esb:packages-buffer)
   (kill-buffer esb:categories-buffer)
   (kill-buffer esb:definitions-buffer)
-  (kill-buffer esb:definition-buffer)
   (kill-buffer esb:documentation-buffer)
+  
   (wlf:clear-windows esb:wm t))
 
 (defun system-browser-browse-package (package-name)
