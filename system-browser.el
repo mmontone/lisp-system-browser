@@ -49,7 +49,7 @@
   (slime-eval '(cl:sort (cl:mapcar 'cl:package-name (cl:list-all-packages)) 'cl:string<)))
 
 (defun esb:asdf-system-packages (system-name &optional include-direct-dependencies)
-  (slime-eval `(esb:asdf-system-packages ,system-name)))
+  (slime-eval `(esb:asdf-system-packages ,system-name ,include-direct-dependencies)))
 
 (defmethod esb:list-packages ((system esb:common-lisp-system))
   (if (esb:packages-list-function system)
@@ -637,9 +637,10 @@
   (interactive (list (slime-read-system-name)))
   (if (zerop (length system-name))
       (oset esb:current-browser-system packages-list-function nil)
-    (oset esb:current-browser-system packages-list-function
-	  (lambda ()
-	    (esb:asdf-system-packages system-name))))
+    (let ((include-direct-dependencies (not (null current-prefix-arg))))
+      (oset esb:current-browser-system packages-list-function
+	    (lambda ()
+	      (esb:asdf-system-packages system-name include-direct-dependencies)))))
   (system-browser-refresh))
 
 ;;------ Menu ----------------------------
