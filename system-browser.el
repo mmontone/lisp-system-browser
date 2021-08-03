@@ -662,6 +662,8 @@
   '("System Browser"
     ["Browse package..." system-browser-browse-package
      :help "Browse a package"]
+    ["Browse ASDF system..." system-browser-browse-system
+     :help "Browse an ASDF system packages"]
     ["Browse definition..." system-browser-browse-definition
      :help "Browse a definition"]
     "--"
