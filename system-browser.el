@@ -507,7 +507,7 @@
   (interactive)
   (let* ((packages (esb:list-packages esb:current-browser-system))
          (package (esb:selected-package esb:current-browser-system))
-         (position (position package packages :test 'string=))
+         (position (position package packages :test 'equalp))
          (next-package (nth (1+ position) packages)))
     (when next-package
       (esb:select-package next-package))))
@@ -517,8 +517,8 @@
   (interactive)
   (let* ((packages (esb:list-packages esb:current-browser-system))
          (package (esb:selected-package esb:current-browser-system))
-         (position (position package packages :test 'string=))
-         (prev-package (nth (1- position) package-list)))
+         (position (position package packages :test 'equalp))
+         (prev-package (nth (1- position) packages)))
     (when prev-package
       (esb:select-package prev-package))))
 
@@ -528,7 +528,7 @@
   (let* ((categories (esb:list-categories esb:current-browser-system
                                           (esb:selected-package esb:current-browser-system)))
          (category (esb:selected-category esb:current-browser-system))
-         (position (position category categories :test 'string=))
+         (position (position category categories :test 'equalp))
          (next-category (nth (1+ position) categories)))
     (when next-category
       (esb:select-category (esb:selected-package esb:current-browser-system)
@@ -540,7 +540,7 @@
   (let* ((categories (esb:list-categories esb:current-browser-system
                                           (esb:selected-package esb:current-browser-system)))
          (category (esb:selected-category esb:current-browser-system))
-         (position (position category categories :test 'string=))
+         (position (position category categories :test 'equalp))
          (prev-category (nth (1- position) categories)))
     (when prev-category
       (esb:select-category (esb:selected-package esb:current-browser-system)
@@ -553,7 +553,7 @@
                                             (esb:selected-package esb:current-browser-system)
                                             (esb:selected-category esb:current-browser-system)))
          (definition (esb:selected-definition esb:current-browser-system))
-         (position (position definition definitions :test 'string=))
+         (position (position definition definitions :test 'equalp))
          (next-definition (nth (1+ position) definitions)))
     (when next-definition
       (esb:select-definition
@@ -568,7 +568,7 @@
                                             (esb:selected-package esb:current-browser-system)
                                             (esb:selected-category esb:current-browser-system)))
          (definition (esb:selected-definition esb:current-browser-system))
-         (position (position definition definitions :test 'string=))
+         (position (position definition definitions :test 'equalp))
          (prev-definition (nth (1- position) definitions)))
     (when prev-definition
       (esb:select-definition
