@@ -10,14 +10,19 @@
 
 (defclass esb:system-browser-system ()
   ((selected-package :accessor esb:selected-package
-                     :initform nil)
+                     :initform nil
+		     :documentation "The current selected package")
    (selected-category :accessor esb:selected-category
-                      :initform nil)
+                      :initform nil
+		      :documentation "The current selected category")
    (selected-definition :accessor esb:selected-definition
-                        :initform nil)))
+                        :initform nil
+			:documentation "The current seleccted definition")))
 
 (defclass esb:common-lisp-system (esb:system-browser-system)
-  ())
+  ((packages-list-function :accessor esb:packages-list-function
+			   :initform nil
+			   :documentation "Function used to get the list of packages, when present")))
 
 (defgeneric esb:list-packages (system-browser-system))
 (defgeneric esb:list-categories (system-browser-system package))
@@ -40,8 +45,16 @@
 (defmethod esb:definition-buffer-mode-line-format (system-browser-system)
   nil)
 
-(defmethod esb:list-packages ((system esb:common-lisp-system))
+(defun esb:list-all-cl-packages ()
   (slime-eval '(cl:sort (cl:mapcar 'cl:package-name (cl:list-all-packages)) 'cl:string<)))
+
+(defun esb:asdf-system-packages (system-name &optional include-direct-dependencies)
+  (slime-eval `(esb:asdf-system-packages ,system-name)))
+
+(defmethod esb:list-packages ((system esb:common-lisp-system))
+  (if (esb:packages-list-function system)
+      (funcall (esb:packages-list-function system))
+    (esb:list-all-cl-packages)))
 
 (defvar esb:packages-buffer)
 (defvar esb:catgories-buffer)
@@ -618,6 +631,16 @@
   "Show help about system browser."
   (interactive)
   (apropos-command "system-browser"))
+
+(defun system-browser-browse-system (system-name)
+  "Browse ASDF system packages."
+  (interactive (list (slime-read-system-name)))
+  (if (zerop (length system-name))
+      (oset esb:current-browser-system packages-list-function nil)
+    (oset esb:current-browser-system packages-list-function
+	  (lambda ()
+	    (esb:asdf-system-packages system-name))))
+  (system-browser-refresh))
 
 ;;------ Menu ----------------------------
 

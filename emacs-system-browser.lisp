@@ -3,10 +3,12 @@
 (defpackage :emacs-system-browser
   (:nicknames :esb)
   (:use :cl)
-  (:export :package-definitions
-	   :list-definitions
-	   :emacs-package-definitions
-	   :serialize-for-emacs))
+  (:export
+   :package-definitions
+   :list-definitions
+   :emacs-package-definitions
+   :serialize-for-emacs
+   :asdf-system-packages))
 
 (in-package :emacs-system-browser)
 
@@ -72,5 +74,11 @@
 		       (funcall predicate-function symbol))
 	      (push symbol defs))))
       (sort (mapcar 'symbol-name defs) 'string<))))
+
+(defun asdf-system-packages (system-name &optional include-direct-dependencies)
+  "Get the list of packages for ASDF system with name SYSTEM-NAME.
+If INCLUDE-DIRECT-DEPENDENCIES is true, then packages of the system's direct dependencies are included too."
+  (let ((packages (def-properties:asdf-system-packages (asdf:find-system system-name))))
+    (sort (mapcar 'package-name packages) 'string<)))
 
 (provide 'emacs-system-browser)
