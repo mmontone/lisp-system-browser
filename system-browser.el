@@ -606,6 +606,13 @@
     (categories (system-browser-prev-category))
     (definitions (system-browser-prev-definition))))
 
+(defun system-browser-find-selection ()
+  "Find a selection in the current system browser selection list buffer."
+  (interactive)
+  (case esb:system-browser-buffer-type
+    (packages (call-interactively 'system-browser-browse-package))
+    (definitions (call-interactively 'system-browser-browse-definition))))
+
 (defun system-browser-refresh ()
   "Refresh the system browser contents and reset its layout."
   (interactive)
@@ -688,6 +695,7 @@
   (let ((map (make-keymap)))
     (define-key map "\C-p" 'system-browser-prev-selection)
     (define-key map "\C-n" 'system-browser-next-selection)
+    (define-key map "\C-f" 'system-browser-find-selection)
     map))
 
 (define-minor-mode system-browser-sel-mode
