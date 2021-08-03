@@ -623,7 +623,7 @@
 
 (defvar system-browser-mode-map
   (let ((map (make-keymap)))
-    (define-key map "C-q" 'quit-system-browser)
+    (define-key map "\C-q" 'quit-system-browser)
     map))
 
 (define-minor-mode system-browser-mode
@@ -660,8 +660,8 @@
 
 (defvar system-browser-sel-mode-map
   (let ((map (make-keymap)))
-    (define-key map "M-p" 'system-browser-prev-selection)
-    (define-key map "M-n" 'system-browser-next-selection)
+    (define-key map "\C-p" 'system-browser-prev-selection)
+    (define-key map "\C-n" 'system-browser-next-selection)
     map))
 
 (define-minor-mode system-browser-sel-mode
