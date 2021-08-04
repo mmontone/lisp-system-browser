@@ -176,7 +176,9 @@
 
 (defun esb:initialize-definition-buffer ()
   (setq esb:definition-buffer (get-buffer-create "*esb-definition*"))
+
   (with-current-buffer esb:definition-buffer
+    (setq buffer-read-only nil)
     (lisp-mode)
 
     ;; Show visited file in mode-line
@@ -317,7 +319,7 @@
 (defun esb:set-definition-buffer-file (file &optional position)
   (wlf:select esb:wm 'definition)
   (wlf:set-buffer esb:wm 'definition esb:definition-buffer)
-  
+
   (block func
     (with-current-buffer esb:definition-buffer
 
@@ -325,16 +327,19 @@
       (when (buffer-modified-p)
         (when (not (yes-or-no-p "System Browser definition buffer modified. Discard changes? "))
           (return-from func)))
+      
+      ;; For some reason, sometimes definition buffer sets to read-only.
+      ;; The following prevents that:
+      (setq buffer-read-only nil)
 
       (erase-buffer)
       (insert-file-contents file)
       ;; Assign file to buffer so changes in definition buffer can be saved
       (setq buffer-file-name file)
       (setq default-directory (file-name-directory file))
-      ;; For some reason, sometimes definition buffer sets to read-only.
-      ;; The following prevents that:
-      (setq buffer-read-only nil)
+      
       (set-buffer-modified-p nil)
+      
       (when position
         (goto-char position)
         (recenter-top-bottom 0)))))
@@ -586,7 +591,7 @@
          (definition (esb:selected-definition esb:current-browser-system))
          (position (position definition definitions :test 'equalp))
          (next-definition (or (and position (nth (1+ position) definitions))
-			      (first definitions))))
+                              (first definitions))))
     (when next-definition
       (esb:select-definition
        (esb:selected-package esb:current-browser-system)
@@ -778,14 +783,14 @@
   (interactive)
   (when (not (null esb:system-browser-buffer-type))
     (let* ((windows '(packages categories definitions definition))
-	   (next-window (nth (mod (1+ (position esb:system-browser-buffer-type windows)) (length windows)) windows)))
+           (next-window (nth (mod (1+ (position esb:system-browser-buffer-type windows)) (length windows)) windows)))
       (wlf:select esb:wm next-window))))
 
 (defun system-browser-switch-prev-buffer ()
   (interactive)
   (when (not (null esb:system-browser-buffer-type))
     (let* ((windows '(packages categories definitions definition))
-	   (next-window (nth (mod (1- (position esb:system-browser-buffer-type windows)) (length windows)) windows)))
+           (next-window (nth (mod (1- (position esb:system-browser-buffer-type windows)) (length windows)) windows)))
       (wlf:select esb:wm next-window))))
 
 (defvar system-browser-sel-mode-map
