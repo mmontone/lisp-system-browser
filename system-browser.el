@@ -195,11 +195,14 @@
                               'mouse-face 'mode-line-highlight))
           mode-line-format)
 
+    (setq esb:system-browser-buffer-type 'definition)
+
     (system-browser-mode)
     ))
 
 (defun esb:initialize-documentation-buffer ()
-  (setq esb:documentation-buffer (get-buffer-create "*esb-documentation*")))
+  (setq esb:documentation-buffer (get-buffer-create "*esb-documentation*"))
+  (setq esb:system-browser-buffer-type 'documentation))
 
 (defun esb:update-packages-buffer ()
   (let ((packages (esb:list-packages esb:current-browser-system)))
@@ -766,13 +769,19 @@
       (definitions (system-browser-cycle-next-definition letter)))))
 
 (defun system-browser-switch-buffer ()
-  (interactive))
+  (interactive)
+  (when (not (null esb:system-browser-buffer-type))
+    (let* ((windows '(packages categories definitions definition))
+	   (next-window (nth (mod (1+ (position esb:system-browser-buffer-type windows)) (length windows)) windows)))
+      (message "Switching to %s" next-window)
+      (wlf:select esb:wm next-window))))
 
 (defvar system-browser-sel-mode-map
   (let ((map (make-keymap)))
     (define-key map "\C-p" 'system-browser-prev-selection)
     (define-key map "\C-n" 'system-browser-next-selection)
     (define-key map "\C-f" 'system-browser-find-selection)
+    (define-key map (kbd "TAB") 'system-browser-switch-buffer)
     (dolist (char (coerce "abcdefghijklmnñopqrstuvwxyz" 'list))
       (define-key map (string char) 'system-browser-cycle-selection))
     map))
