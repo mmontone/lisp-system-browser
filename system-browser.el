@@ -221,7 +221,8 @@
                        'help-echo "Browse package")
         (newline))
       (setq buffer-read-only t))
-    (esb:select-package (first packages))))
+    (when packages
+      (esb:select-package (first packages)))))
 
 (defun esb:select-package (package)
   (oset esb:current-browser-system selected-package package)
@@ -631,9 +632,11 @@
     (packages (call-interactively 'system-browser-browse-package))
     (definitions (call-interactively 'system-browser-browse-definition))))
 
-(defun system-browser-refresh ()
+(defun system-browser-refresh (&optional hard)
   "Refresh the system browser contents and reset its layout."
   (interactive)
+  (when hard
+    (setq esb:current-browser-system (make-instance (class-of esb:current-browser-system))))
   (system-browser))
 
 (defun system-browser-toggle-docs ()
@@ -672,7 +675,7 @@
 
 (defvar system-browser-mode-map
   (let ((map (make-keymap)))
-    (define-key map "\C-q" 'quit-system-browser)
+    (define-key map (kbd "C-q") 'quit-system-browser)
     map))
 
 (define-minor-mode system-browser-mode

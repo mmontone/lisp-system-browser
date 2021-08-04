@@ -78,7 +78,8 @@
 (defun asdf-system-packages (system-name &optional include-direct-dependencies)
   "Get the list of packages for ASDF system with name SYSTEM-NAME.
 If INCLUDE-DIRECT-DEPENDENCIES is true, then packages of the system's direct dependencies are included too."
-  (let* ((system (asdf:find-system system-name))
+  (let* ((system (or (asdf:find-system system-name nil)
+		     (return-from asdf-system-packages)))
 	 (packages (def-properties:asdf-system-packages system)))
     (when include-direct-dependencies
       (dolist (dependency (asdf:system-depends-on system))
