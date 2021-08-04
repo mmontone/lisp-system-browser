@@ -314,6 +314,9 @@
       (goto-line (1+ item-pos)))))
 
 (defun esb:set-definition-buffer-file (file &optional position)
+  (wlf:select esb:wm 'definition)
+  (wlf:set-buffer esb:wm 'definition esb:definition-buffer)
+  
   (block func
     (with-current-buffer esb:definition-buffer
 
@@ -321,8 +324,6 @@
       (when (buffer-modified-p)
         (when (not (yes-or-no-p "System Browser definition buffer modified. Discard changes? "))
           (return-from func)))
-
-      (wlf:select esb:wm 'definition)
 
       (erase-buffer)
       (insert-file-contents file)
