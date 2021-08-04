@@ -792,6 +792,8 @@
     (define-key map (kbd "C-f") 'system-browser-find-selection)
     (define-key map (kbd "TAB") 'system-browser-switch-next-buffer)
     (define-key map (kbd "<backtab>") 'system-browser-switch-prev-buffer)
+    (define-key map (kbd "<right>") 'system-browser-switch-next-buffer)
+    (define-key map (kbd "<left>") 'system-browser-switch-prev-buffer)
     (dolist (char (coerce "abcdefghijklmnñopqrstuvwxyz" 'list))
       (define-key map (string char) 'system-browser-cycle-selection))
     map))
