@@ -598,7 +598,7 @@
                                             (esb:selected-category esb:current-browser-system)))
          (definition (esb:selected-definition esb:current-browser-system))
          (position (position definition definitions :test 'equalp))
-         (prev-definition (nth (1- position) definitions)))
+         (prev-definition (and position (nth (1- position) definitions))))
     (when prev-definition
       (esb:select-definition
        (esb:selected-package esb:current-browser-system)
