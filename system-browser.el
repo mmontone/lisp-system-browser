@@ -217,13 +217,16 @@
                        'help-echo "Browse package")
         (newline))
       (setq buffer-read-only t))
-    (wlf:select esb:wm 'packages)
-
     (esb:select-package (first packages))))
 
 (defun esb:select-package (package)
   (oset esb:current-browser-system selected-package package)
-  (esb:update-categories-buffer package))
+  (esb:update-categories-buffer package)
+  (wlf:select esb:wm 'packages)
+  ;; Move cursor to the line of the selection
+  (let ((item-pos (1+ (position package (esb:list-packages esb:current-browser-system) :test 'equalp))))
+    (with-current-buffer esb:packages-buffer
+      (goto-line item-pos))))
 
 (defun esb:update-categories-buffer (package)
   (let ((categories (esb:list-categories esb:current-browser-system package)))
@@ -243,8 +246,7 @@
                        'help-echo "Browse category")
         (newline))
       (setq buffer-read-only t))
-    (wlf:select esb:wm 'categories)
-
+    
     (let* ((package-properties (slime-eval `(esb::serialize-for-emacs (def-properties:package-properties ,package t))))
            (source (find :source package-properties :key 'car))
            (file (and source
@@ -269,7 +271,11 @@
 
 (defun esb:select-category (package category)
   (oset esb:current-browser-system selected-category  category)
-  (esb:update-definitions-buffer package category))
+  (esb:update-definitions-buffer package category)
+  (wlf:select esb:wm 'categories)
+  (let ((item-pos (1+ (position category (esb:list-categories esb:current-browser-system package) :test 'equalp))))
+    (with-current-buffer esb:categories-buffer
+      (goto-line (1+ item-pos)))))
 
 (defun esb:update-definitions-buffer (package category)
   (with-current-buffer esb:definitions-buffer
@@ -295,7 +301,13 @@
 (defun esb:select-definition (package category definition)
   (oset esb:current-browser-system selected-definition definition)
   (esb:update-definition-buffer package category definition)
-  (esb:update-documentation-buffer package category definition))
+  (esb:update-documentation-buffer package category definition)
+  (wlf:select esb:wm 'definitions)
+  
+  ;; Move cursor to the line of the selection
+  (let ((item-pos (1+ (position definition (esb:list-definitions esb:current-browser-system package category) :test 'equalp))))
+    (with-current-buffer esb:definitions-buffer
+      (goto-line (1+ item-pos)))))
 
 (defun esb:set-definition-buffer-file (file &optional position)
   (block func
