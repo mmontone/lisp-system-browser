@@ -202,7 +202,8 @@
 
 (defun esb:initialize-documentation-buffer ()
   (setq esb:documentation-buffer (get-buffer-create "*esb-documentation*"))
-  (setq esb:system-browser-buffer-type 'documentation))
+  (with-current-buffer esb:documentation-buffer
+    (setq esb:system-browser-buffer-type 'documentation)))
 
 (defun esb:update-packages-buffer ()
   (let ((packages (esb:list-packages esb:current-browser-system)))
