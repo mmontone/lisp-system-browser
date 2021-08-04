@@ -11,18 +11,18 @@
 (defclass esb:system-browser-system ()
   ((selected-package :accessor esb:selected-package
                      :initform nil
-		     :documentation "The current selected package")
+                     :documentation "The current selected package")
    (selected-category :accessor esb:selected-category
                       :initform nil
-		      :documentation "The current selected category")
+                      :documentation "The current selected category")
    (selected-definition :accessor esb:selected-definition
                         :initform nil
-			:documentation "The current seleccted definition")))
+                        :documentation "The current seleccted definition")))
 
 (defclass esb:common-lisp-system (esb:system-browser-system)
   ((packages-list-function :accessor esb:packages-list-function
-			   :initform nil
-			   :documentation "Function used to get the list of packages, when present")))
+                           :initform nil
+                           :documentation "Function used to get the list of packages, when present")))
 
 (defgeneric esb:list-packages (system-browser-system))
 (defgeneric esb:list-categories (system-browser-system package))
@@ -246,7 +246,7 @@
                        'help-echo "Browse category")
         (newline))
       (setq buffer-read-only t))
-    
+
     (let* ((package-properties (slime-eval `(esb::serialize-for-emacs (def-properties:package-properties ,package t))))
            (source (find :source package-properties :key 'car))
            (file (and source
@@ -303,7 +303,7 @@
   (esb:update-definition-buffer package category definition)
   (esb:update-documentation-buffer package category definition)
   (wlf:select esb:wm 'definitions)
-  
+
   ;; Move cursor to the line of the selection
   (let ((item-pos (1+ (position definition (esb:list-definitions esb:current-browser-system package category) :test 'equalp))))
     (with-current-buffer esb:definitions-buffer
@@ -499,12 +499,12 @@
 
   ;; Try killing the definition buffer first, as it may have been modified
   (kill-buffer esb:definition-buffer)
-  
+
   (kill-buffer esb:packages-buffer)
   (kill-buffer esb:categories-buffer)
   (kill-buffer esb:definitions-buffer)
   (kill-buffer esb:documentation-buffer)
-  
+
   (wlf:clear-windows esb:wm t))
 
 (defun system-browser-browse-package (package-name)
@@ -658,8 +658,8 @@
       (oset esb:current-browser-system packages-list-function nil)
     (let ((include-direct-dependencies (not (null current-prefix-arg))))
       (oset esb:current-browser-system packages-list-function
-	    (lambda ()
-	      (esb:asdf-system-packages system-name include-direct-dependencies)))))
+            (lambda ()
+              (esb:asdf-system-packages system-name include-direct-dependencies)))))
   (system-browser-refresh))
 
 ;;------ Menu ----------------------------
@@ -703,11 +703,78 @@
     ["Quit" quit-system-browser
      :help "Quit System Browser"]))
 
+(defun system-browser-cycle-next-package (letter)
+  (let* ((packages (esb:list-packages esb:current-browser-system))
+         (position (1+ (or (and (esb:selected-package esb:current-browser-system)
+                                (position (esb:selected-package esb:current-browser-system)
+                                          packages :test 'equalp))
+                           -1))))
+    ;; Find next package that begins with LETTER, starting from POSITION
+    (cl-flet ((find-next-package (position)
+                                 (find-if (lambda (package)
+                                            (char-equal (aref package 0) letter))
+                                          (subseq packages position))))
+      (let ((package (or (find-next-package position)
+                         (find-next-package 0))))
+        (when package
+          (esb:select-package package))))))
+
+(defun system-browser-cycle-next-category (letter)
+  (let* ((categories (esb:list-categories esb:current-browser-system
+                                          (esb:selected-package esb:current-browser-system)))
+         (position (1+ (or (and (esb:selected-category esb:current-browser-system)
+                                (position (esb:selected-category esb:current-browser-system)
+                                          categories :test 'equalp))
+                           -1))))
+    ;; Find next category that begins with LETTER, starting from POSITION
+    (cl-flet ((find-next-category (position)
+                                  (find-if (lambda (category)
+                                             (char-equal (aref category 0) letter))
+                                           (subseq categories position))))
+      (let ((category (or (find-next-category position)
+                          (find-next-category 0))))
+        (when category
+          (esb:select-category (esb:selected-package esb:current-browser-system) category))))))
+
+(defun system-browser-cycle-next-definition (letter)
+  (let* ((definitions (esb:list-definitions esb:current-browser-system
+                                            (esb:selected-package esb:current-browser-system)
+                                            (esb:selected-category esb:current-browser-system)))
+         (position (1+ (or (and (esb:selected-definition esb:current-browser-system)
+                                (position (esb:selected-definition esb:current-browser-system)
+                                          definitions :test 'equalp))
+                           -1))))
+    ;; Find next definition that begins with LETTER, starting from POSITION
+    (cl-flet ((find-next-definition (position)
+                                    (find-if (lambda (definition)
+                                               (char-equal (aref definition 0) letter))
+                                             (subseq definitions position))))
+      (let ((definition (or (find-next-definition position)
+                            (find-next-definition 0))))
+        (when definition
+          (esb:select-definition
+           (esb:selected-package esb:current-browser-system)
+           (esb:selected-category esb:current-browser-system)
+           definition))))))
+
+(defun system-browser-cycle-selection ()
+  (interactive)
+  (let ((letter (aref (this-command-keys) 0)))
+    (case esb:system-browser-buffer-type
+      (packages (system-browser-cycle-next-package letter))
+      (categories (system-browser-cycle-next-category letter))
+      (definitions (system-browser-cycle-next-definition letter)))))
+
+(defun system-browser-switch-buffer ()
+  (interactive))
+
 (defvar system-browser-sel-mode-map
   (let ((map (make-keymap)))
     (define-key map "\C-p" 'system-browser-prev-selection)
     (define-key map "\C-n" 'system-browser-next-selection)
     (define-key map "\C-f" 'system-browser-find-selection)
+    (dolist (char (coerce "abcdefghijklmnñopqrstuvwxyz" 'list))
+      (define-key map (string char) 'system-browser-cycle-selection))
     map))
 
 (define-minor-mode system-browser-sel-mode
