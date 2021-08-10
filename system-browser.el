@@ -64,6 +64,8 @@
 
 (defvar esb:current-browser-system (make-instance 'esb:common-lisp-system))
 
+(defvar system-browser-start-hook)
+
 ;;--------- Settings ---------------------------------
 
 (defgroup system-browser nil
@@ -467,6 +469,22 @@
     (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'categories winfo-list)) t)
     (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'definitions winfo-list)) t)))
 
+(defun esb:system-browser-initialize ()
+  ;; Initialize system browser buffers
+  (esb:initialize-packages-buffer)
+  (esb:initialize-categories-buffer)
+  (esb:initialize-definitions-buffer)
+  (esb:initialize-definition-buffer)
+  (esb:initialize-documentation-buffer)
+
+  (esb:initialize-windows)
+
+  (when (not esb:show-documentation-buffer)
+    (wlf:hide esb:wm 'documentation))
+
+  (esb:update-packages-buffer)
+  (wlf:select esb:wm 'packages))
+
 (defun system-browser ()
   "Open the currently instantiated system browser."
   (interactive)
@@ -481,20 +499,8 @@
         (slime))
       (return-from system-browser))
 
-    ;; Initialize system browser buffers
-    (esb:initialize-packages-buffer)
-    (esb:initialize-categories-buffer)
-    (esb:initialize-definitions-buffer)
-    (esb:initialize-definition-buffer)
-    (esb:initialize-documentation-buffer)
-
-    (esb:initialize-windows)
-
-    (when (not esb:show-documentation-buffer)
-      (wlf:hide esb:wm 'documentation))
-
-    (esb:update-packages-buffer)
-    (wlf:select esb:wm 'packages)))
+    (esb:system-browser-initialize)
+    (run-hooks 'system-browser-start-hook)))
 
 ;;------- Commands ------------------------------------------------
 
@@ -648,7 +654,7 @@
   (interactive)
   (when hard
     (setq esb:current-browser-system (make-instance (class-of esb:current-browser-system))))
-  (system-browser))
+  (esb:system-browser-initialize))
 
 (defun system-browser-toggle-docs ()
   "Toggle documentation panel in system browser."
