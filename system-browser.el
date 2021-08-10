@@ -829,6 +829,7 @@
   "Smalltalk-like system browser for Common Lisp"
   (:authors "Mariano Montone")
   (:license "GPL")
+  (:slime-dependencies slime-asdf)
   (:swank-dependencies emacs-system-browser))
 
 (provide 'system-browser)
