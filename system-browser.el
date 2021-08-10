@@ -99,6 +99,12 @@
   :group 'system-browser
   :tag "Start SLIME automatically")
 
+(defcustom esb:load-asdf-systems-on-browse t
+  "When enabled, load ASDF systems before browsing them."
+  :type 'boolean
+  :group 'system-browser
+  :tag "Load ASDF systems on browse")
+
 ;;------- Faces --------------------------
 
 (defface esb:definition-list-item-face
@@ -327,7 +333,7 @@
       (when (buffer-modified-p)
         (when (not (yes-or-no-p "System Browser definition buffer modified. Discard changes? "))
           (return-from func)))
-      
+
       ;; For some reason, sometimes definition buffer sets to read-only.
       ;; The following prevents that:
       (setq buffer-read-only nil)
@@ -337,9 +343,9 @@
       ;; Assign file to buffer so changes in definition buffer can be saved
       (setq buffer-file-name file)
       (setq default-directory (file-name-directory file))
-      
+
       (set-buffer-modified-p nil)
-      
+
       (when position
         (goto-char position)
         (recenter-top-bottom 0)))))
@@ -671,6 +677,8 @@
   (if (zerop (length system-name))
       (oset esb:current-browser-system packages-list-function nil)
     (let ((include-direct-dependencies (not (null current-prefix-arg))))
+      (when esb:load-asdf-systems-on-browse
+        (slime-eval `(cl:progn (asdf:operate 'asdf:load-op ,system-name) nil)))
       (oset esb:current-browser-system packages-list-function
             (lambda ()
               (esb:asdf-system-packages system-name include-direct-dependencies)))))
