@@ -64,7 +64,7 @@
 
 (defvar esb:current-browser-system (make-instance 'esb:common-lisp-system))
 
-(defvar system-browser-start-hook)
+(defvar system-browser-start-hook '(esb:maybe-browse-customized-asdf-system))
 
 ;;--------- Settings ---------------------------------
 
@@ -106,6 +106,15 @@
   :type 'boolean
   :group 'system-browser
   :tag "Load ASDF systems on browse")
+
+(defcustom esb:asdf-system (cons "" nil)
+  "When set, system-browser will browse the ASDF system on start.
+The first argument specifies the ASDF system name. 
+The second argument indicates if include system's direct dependencies or not."
+  :type '(cons (string :tag "ASDF system name")
+	       (boolean :tag "Include direct dependencies"))
+  :group 'system-browser
+  :tag "ASDF system")
 
 ;;------- Faces --------------------------
 
@@ -484,6 +493,12 @@
 
   (esb:update-packages-buffer)
   (wlf:select esb:wm 'packages))
+
+(defun esb:maybe-browse-customized-asdf-system ()
+  (when (not (zerop (length (car esb:asdf-system))))
+    (when (cdr esb:asdf-system)
+      (setq current-prefix-arg (cdr esb:asdf-system)))
+    (system-browser-browse-system (car esb:asdf-system))))
 
 (defun system-browser ()
   "Open the currently instantiated system browser."
