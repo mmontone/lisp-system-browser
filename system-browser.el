@@ -151,10 +151,7 @@ The second argument indicates if include system's direct dependencies or not."
 
 (defvar esb:mode-line-toggle-docs-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [mode-line mouse-1]
-      (lambda (_e)
-        (interactive "e")
-        (wlf:toggle esb:wm 'documentation)))
+    (define-key map [mode-line mouse-1] 'system-browser-toggle-docs)
     map))
 
 (defun esb:setup-selection-list-buffer ()
@@ -450,6 +447,12 @@ The second argument indicates if include system's direct dependencies or not."
 
 (defvar esb:wm)
 
+(defun esb:set-windows-dedicated ()
+  (let ((winfo-list (wlf:wset-winfo-list esb:wm)))
+    (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'packages winfo-list)) t)
+    (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'categories winfo-list)) t)
+    (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'definitions winfo-list)) t)))
+
 (defun esb:initialize-windows ()
   (setq esb:wm
         (wlf:layout
@@ -473,10 +476,7 @@ The second argument indicates if include system's direct dependencies or not."
                   :buffer "*esb-documentation*")
            )))
   ;; Mark selection windows as dedicated
-  (let ((winfo-list (wlf:wset-winfo-list esb:wm)))
-    (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'packages winfo-list)) t)
-    (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'categories winfo-list)) t)
-    (set-window-dedicated-p (wlf:window-window (wlf:get-winfo 'definitions winfo-list)) t)))
+  (esb:set-windows-dedicated))
 
 (defun esb:system-browser-initialize ()
   ;; Initialize system browser buffers
@@ -489,7 +489,10 @@ The second argument indicates if include system's direct dependencies or not."
   (esb:initialize-windows)
 
   (when (not esb:show-documentation-buffer)
-    (wlf:hide esb:wm 'documentation))
+    (wlf:hide esb:wm 'documentation)
+    ;; There's a bug with wlf:hide, that removes the window-dedicated-p flag from the windows.
+    ;; So, we reestablish it here:
+    (esb:set-windows-dedicated))
 
   (esb:update-packages-buffer)
   (wlf:select esb:wm 'packages))
@@ -674,7 +677,10 @@ The second argument indicates if include system's direct dependencies or not."
 (defun system-browser-toggle-docs ()
   "Toggle documentation panel in system browser."
   (interactive)
-  (wlf:toggle esb:wm 'documentation))
+  (wlf:toggle esb:wm 'documentation)
+  ;; There's a bug with wlf:toggle, that removes the window-dedicated-p flag from the windows.
+  ;; So, we reestablish it here:
+  (esb:set-windows-dedicated))
 
 (defun system-browser-toggle-internal-definitions ()
   "Toggle internal definitions listing in system browser."
