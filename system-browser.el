@@ -3,7 +3,6 @@
 
 ;;; Code:
 
-(require 'cl)
 (require 'window-layout)
 
 ;;------ Model ------------------------------------------
@@ -24,25 +23,25 @@
                            :initform nil
                            :documentation "Function used to get the list of packages, when present")))
 
-(defgeneric esb:list-packages (system-browser-system))
-(defgeneric esb:list-categories (system-browser-system package))
-(defgeneric esb:list-definitions (system-browser-system package category))
-(defgeneric esb:packages-buffer-mode-line-format (system-browser-system))
-(defgeneric esb:categories-buffer-mode-line-format (system-browser-system))
-(defgeneric esb:definitions-buffer-mode-line-format (system-browser-system))
-(defgeneric esb:definition-buffer-mode-line-format (system-browser-system))
+(cl-defgeneric esb:list-packages (system-browser-system))
+(cl-defgeneric esb:list-categories (system-browser-system package))
+(cl-defgeneric esb:list-definitions (system-browser-system package category))
+(cl-defgeneric esb:packages-buffer-mode-line-format (system-browser-system))
+(cl-defgeneric esb:categories-buffer-mode-line-format (system-browser-system))
+(cl-defgeneric esb:definitions-buffer-mode-line-format (system-browser-system))
+(cl-defgeneric esb:definition-buffer-mode-line-format (system-browser-system))
 
 ;; Default mode-line
-(defmethod esb:packages-buffer-mode-line-format (system-browser-system)
+(cl-defmethod esb:packages-buffer-mode-line-format (system-browser-system)
   "Packages")
 
-(defmethod esb:categories-buffer-mode-line-format (system-browser-system)
+(cl-defmethod esb:categories-buffer-mode-line-format (system-browser-system)
   "Categories")
 
-(defmethod esb:definitions-buffer-mode-line-format (system-browser-system)
+(cl-defmethod esb:definitions-buffer-mode-line-format (system-browser-system)
   "Definitions")
 
-(defmethod esb:definition-buffer-mode-line-format (system-browser-system)
+(cl-defmethod esb:definition-buffer-mode-line-format (system-browser-system)
   nil)
 
 (defun esb:list-all-cl-packages ()
@@ -51,7 +50,7 @@
 (defun esb:asdf-system-packages (system-name &optional include-direct-dependencies)
   (slime-eval `(esb:asdf-system-packages ,system-name ,include-direct-dependencies)))
 
-(defmethod esb:list-packages ((system esb:common-lisp-system))
+(cl-defmethod esb:list-packages ((system esb:common-lisp-system))
   (if (esb:packages-list-function system)
       (funcall (esb:packages-list-function system))
     (esb:list-all-cl-packages)))
@@ -109,10 +108,10 @@
 
 (defcustom esb:asdf-system (cons "" nil)
   "When set, system-browser will browse the ASDF system on start.
-The first argument specifies the ASDF system name. 
+The first argument specifies the ASDF system name.
 The second argument indicates if include system's direct dependencies or not."
   :type '(cons (string :tag "ASDF system name")
-	       (boolean :tag "Include direct dependencies"))
+               (boolean :tag "Include direct dependencies"))
   :group 'system-browser
   :tag "ASDF system")
 
@@ -231,6 +230,7 @@ The second argument indicates if include system's direct dependencies or not."
                            (downcase package-name)
                          package-name)
                        'action (lambda (btn)
+				 (ignore btn)
                                  (esb:select-package package-name))
                        'face 'esb:definition-list-item-face
                        'follow-link t
@@ -245,7 +245,7 @@ The second argument indicates if include system's direct dependencies or not."
   (esb:update-categories-buffer package)
   (wlf:select esb:wm 'packages)
   ;; Move cursor to the line of the selection
-  (let ((item-pos (1+ (position package (esb:list-packages esb:current-browser-system) :test 'equalp))))
+  (let ((item-pos (1+ (cl-position package (esb:list-packages esb:current-browser-system) :test 'equalp))))
     (with-current-buffer esb:packages-buffer
       (goto-line item-pos))))
 
@@ -261,6 +261,7 @@ The second argument indicates if include system's direct dependencies or not."
       (dolist (category categories)
         (insert-button category
                        'action (lambda (btn)
+				 (ignore btn)
                                  (esb:select-category package category))
                        'follow-link t
                        'face 'esb:definition-list-item-face
@@ -269,13 +270,13 @@ The second argument indicates if include system's direct dependencies or not."
       (setq buffer-read-only t))
 
     (let* ((package-properties (slime-eval `(esb::serialize-for-emacs (def-properties:package-properties ,package t))))
-           (source (find :source package-properties :key 'car))
+           (source (cl-find :source package-properties :key 'car))
            (file (and source
-                      (or (cadr (find :file (remove-if-not 'listp source) :key 'car))
-                          (caddr (find :buffer-and-file (remove-if-not 'listp source) :key 'car)))))
+                      (or (cadr (cl-find :file (cl-remove-if-not 'listp source) :key 'car))
+                          (caddr (cl-find :buffer-and-file (cl-remove-if-not 'listp source) :key 'car)))))
            (position (and source (or
-                                  (cadr (find :position (remove-if-not 'listp source) :key 'car))
-                                  (cadr (find :offset (remove-if-not 'listp source) :key 'car))
+                                  (cadr (cl-find :position (cl-remove-if-not 'listp source) :key 'car))
+                                  (cadr (cl-find :offset (cl-remove-if-not 'listp source) :key 'car))
                                   )))
            (documentation (cdr (assoc :documentation package-properties))))
 
@@ -294,7 +295,7 @@ The second argument indicates if include system's direct dependencies or not."
   (oset esb:current-browser-system selected-category  category)
   (esb:update-definitions-buffer package category)
   (wlf:select esb:wm 'categories)
-  (let ((item-pos (1+ (position category (esb:list-categories esb:current-browser-system package) :test 'equalp))))
+  (let ((item-pos (1+ (cl-position category (esb:list-categories esb:current-browser-system package) :test 'equalp))))
     (with-current-buffer esb:categories-buffer
       (goto-line (1+ item-pos)))))
 
@@ -310,6 +311,7 @@ The second argument indicates if include system's direct dependencies or not."
                          (downcase definition)
                        definition)
                      'action (lambda (btn)
+			       (ignore btn)
                                (esb:select-definition package category definition))
                      'face 'esb:definition-list-item-face
                      'follow-link t
@@ -326,7 +328,7 @@ The second argument indicates if include system's direct dependencies or not."
   (wlf:select esb:wm 'definitions)
 
   ;; Move cursor to the line of the selection
-  (let ((item-pos (1+ (position definition (esb:list-definitions esb:current-browser-system package category) :test 'equalp))))
+  (let ((item-pos (1+ (cl-position definition (esb:list-definitions esb:current-browser-system package category) :test 'equalp))))
     (with-current-buffer esb:definitions-buffer
       (goto-line (1+ item-pos)))))
 
@@ -340,7 +342,7 @@ The second argument indicates if include system's direct dependencies or not."
       ;; Check for unsaved changes in definition buffer
       (when (buffer-modified-p)
         (when (not (yes-or-no-p "System Browser definition buffer modified. Discard changes? "))
-          (return-from func)))
+          (cl-return-from func)))
 
       ;; For some reason, sometimes definition buffer sets to read-only.
       ;; The following prevents that:
@@ -379,13 +381,13 @@ The second argument indicates if include system's direct dependencies or not."
            (t (error "Invalid category: %s" category))
            )))
     (let* ((definition-properties (slime-eval `(esb:serialize-for-emacs (,definition-function (cl:intern ,definition ,package) t))))
-           (source (find :source definition-properties :key 'car))
+           (source (cl-find :source definition-properties :key 'car))
            (file (and source (or
-                              (cadr (find :file (remove-if-not 'listp source) :key 'car))
-                              (caddr (find :buffer-and-file (remove-if-not 'listp source) :key 'car)))))
+                              (cadr (cl-find :file (cl-remove-if-not 'listp source) :key 'car))
+                              (caddr (cl-find :buffer-and-file (cl-remove-if-not 'listp source) :key 'car)))))
            (position (and source (or
-                                  (cadr (find :position (remove-if-not 'listp source) :key 'car))
-                                  (cadr (find :offset (remove-if-not 'listp source) :key 'car))))))
+                                  (cadr (cl-find :position (cl-remove-if-not 'listp source) :key 'car))
+                                  (cadr (cl-find :offset (cl-remove-if-not 'listp source) :key 'car))))))
       (if (and file position)
           (with-current-buffer esb:definition-buffer
             (wlf:select esb:wm 'definition)
@@ -429,10 +431,10 @@ The second argument indicates if include system's direct dependencies or not."
             (setq contents (concat contents (cdr (assoc :value definition-properties)))))))
       (esb:set-documentation-buffer-contents contents))))
 
-(defmethod esb:list-categories ((system esb:common-lisp-system) package)
+(cl-defmethod esb:list-categories ((system esb:common-lisp-system) package)
   '("functions" "variables" "macros" "classes" "generic functions"))
 
-(defmethod esb:list-definitions ((system esb:common-lisp-system) package category)
+(cl-defmethod esb:list-definitions ((system esb:common-lisp-system) package category)
   (let ((definition-type
           (cond
            ((string= category "functions") :function)
@@ -507,7 +509,7 @@ The second argument indicates if include system's direct dependencies or not."
   "Open the currently instantiated system browser."
   (interactive)
 
-  (block system-browser
+  (cl-block system-browser
 
     ;; Start SLIME if needed
     (when (not (slime-connected-p))
@@ -515,7 +517,7 @@ The second argument indicates if include system's direct dependencies or not."
                 (yes-or-no-p "SLIME is not connected. Start? "))
         (add-hook 'slime-connected-hook 'system-browser t)
         (slime))
-      (return-from system-browser))
+      (cl-return-from system-browser))
 
     (esb:system-browser-initialize)
     (run-hooks 'system-browser-start-hook)))
@@ -573,7 +575,7 @@ The second argument indicates if include system's direct dependencies or not."
   (interactive)
   (let* ((packages (esb:list-packages esb:current-browser-system))
          (package (esb:selected-package esb:current-browser-system))
-         (position (position package packages :test 'equalp))
+         (position (cl-position package packages :test 'equalp))
          (next-package (nth (1+ position) packages)))
     (when next-package
       (esb:select-package next-package))))
@@ -583,7 +585,7 @@ The second argument indicates if include system's direct dependencies or not."
   (interactive)
   (let* ((packages (esb:list-packages esb:current-browser-system))
          (package (esb:selected-package esb:current-browser-system))
-         (position (position package packages :test 'equalp))
+         (position (cl-position package packages :test 'equalp))
          (prev-package (nth (1- position) packages)))
     (when prev-package
       (esb:select-package prev-package))))
@@ -594,7 +596,7 @@ The second argument indicates if include system's direct dependencies or not."
   (let* ((categories (esb:list-categories esb:current-browser-system
                                           (esb:selected-package esb:current-browser-system)))
          (category (esb:selected-category esb:current-browser-system))
-         (position (position category categories :test 'equalp))
+         (position (cl-position category categories :test 'equalp))
          (next-category (nth (1+ position) categories)))
     (when next-category
       (esb:select-category (esb:selected-package esb:current-browser-system)
@@ -606,7 +608,7 @@ The second argument indicates if include system's direct dependencies or not."
   (let* ((categories (esb:list-categories esb:current-browser-system
                                           (esb:selected-package esb:current-browser-system)))
          (category (esb:selected-category esb:current-browser-system))
-         (position (position category categories :test 'equalp))
+         (position (cl-position category categories :test 'equalp))
          (prev-category (nth (1- position) categories)))
     (when prev-category
       (esb:select-category (esb:selected-package esb:current-browser-system)
@@ -619,7 +621,7 @@ The second argument indicates if include system's direct dependencies or not."
                                             (esb:selected-package esb:current-browser-system)
                                             (esb:selected-category esb:current-browser-system)))
          (definition (esb:selected-definition esb:current-browser-system))
-         (position (position definition definitions :test 'equalp))
+         (position (cl-position definition definitions :test 'equalp))
          (next-definition (or (and position (nth (1+ position) definitions))
                               (first definitions))))
     (when next-definition
@@ -635,7 +637,7 @@ The second argument indicates if include system's direct dependencies or not."
                                             (esb:selected-package esb:current-browser-system)
                                             (esb:selected-category esb:current-browser-system)))
          (definition (esb:selected-definition esb:current-browser-system))
-         (position (position definition definitions :test 'equalp))
+         (position (cl-position definition definitions :test 'equalp))
          (prev-definition (and position (nth (1- position) definitions))))
     (when prev-definition
       (esb:select-definition
@@ -646,7 +648,7 @@ The second argument indicates if include system's direct dependencies or not."
 (defun system-browser-next-selection ()
   "Select next item in system browser selection buffer."
   (interactive)
-  (case esb:system-browser-buffer-type
+  (cl-case esb:system-browser-buffer-type
     (packages (system-browser-next-package))
     (categories (system-browser-next-category))
     (definitions (system-browser-next-definition))
@@ -655,7 +657,7 @@ The second argument indicates if include system's direct dependencies or not."
 (defun system-browser-prev-selection ()
   "Select previous item in system browser selection buffer."
   (interactive)
-  (case esb:system-browser-buffer-type
+  (cl-case esb:system-browser-buffer-type
     (packages (system-browser-prev-package))
     (categories (system-browser-prev-category))
     (definitions (system-browser-prev-definition))))
@@ -663,7 +665,7 @@ The second argument indicates if include system's direct dependencies or not."
 (defun system-browser-find-selection ()
   "Find a selection in the current system browser selection list buffer."
   (interactive)
-  (case esb:system-browser-buffer-type
+  (cl-case esb:system-browser-buffer-type
     (packages (call-interactively 'system-browser-browse-package))
     (definitions (call-interactively 'system-browser-browse-definition))))
 
@@ -671,7 +673,7 @@ The second argument indicates if include system's direct dependencies or not."
   "Refresh the system browser contents and reset its layout."
   (interactive)
   (when hard
-    (setq esb:current-browser-system (make-instance (class-of esb:current-browser-system))))
+    (setq esb:current-browser-system (make-instance (eieio-object-class esb:current-browser-system))))
   (esb:system-browser-initialize))
 
 (defun system-browser-toggle-docs ()
@@ -755,14 +757,14 @@ The second argument indicates if include system's direct dependencies or not."
 (defun system-browser-cycle-next-package (letter)
   (let* ((packages (esb:list-packages esb:current-browser-system))
          (position (1+ (or (and (esb:selected-package esb:current-browser-system)
-                                (position (esb:selected-package esb:current-browser-system)
-                                          packages :test 'equalp))
+                                (cl-position (esb:selected-package esb:current-browser-system)
+                                             packages :test 'equalp))
                            -1))))
     ;; Find next package that begins with LETTER, starting from POSITION
     (cl-flet ((find-next-package (position)
-                                 (find-if (lambda (package)
-                                            (char-equal (aref package 0) letter))
-                                          (subseq packages position))))
+                                 (cl-find-if (lambda (package)
+                                               (char-equal (aref package 0) letter))
+                                             (cl-subseq packages position))))
       (let ((package (or (find-next-package position)
                          (find-next-package 0))))
         (when package
@@ -772,14 +774,14 @@ The second argument indicates if include system's direct dependencies or not."
   (let* ((categories (esb:list-categories esb:current-browser-system
                                           (esb:selected-package esb:current-browser-system)))
          (position (1+ (or (and (esb:selected-category esb:current-browser-system)
-                                (position (esb:selected-category esb:current-browser-system)
-                                          categories :test 'equalp))
+                                (cl-position (esb:selected-category esb:current-browser-system)
+                                             categories :test 'equalp))
                            -1))))
     ;; Find next category that begins with LETTER, starting from POSITION
     (cl-flet ((find-next-category (position)
-                                  (find-if (lambda (category)
-                                             (char-equal (aref category 0) letter))
-                                           (subseq categories position))))
+                                  (cl-find-if (lambda (category)
+                                                (char-equal (aref category 0) letter))
+                                              (cl-subseq categories position))))
       (let ((category (or (find-next-category position)
                           (find-next-category 0))))
         (when category
@@ -790,14 +792,14 @@ The second argument indicates if include system's direct dependencies or not."
                                             (esb:selected-package esb:current-browser-system)
                                             (esb:selected-category esb:current-browser-system)))
          (position (1+ (or (and (esb:selected-definition esb:current-browser-system)
-                                (position (esb:selected-definition esb:current-browser-system)
-                                          definitions :test 'equalp))
+                                (cl-position (esb:selected-definition esb:current-browser-system)
+                                             definitions :test 'equalp))
                            -1))))
     ;; Find next definition that begins with LETTER, starting from POSITION
     (cl-flet ((find-next-definition (position)
-                                    (find-if (lambda (definition)
-                                               (char-equal (aref definition 0) letter))
-                                             (subseq definitions position))))
+                                    (cl-find-if (lambda (definition)
+                                                  (char-equal (aref definition 0) letter))
+                                                (cl-subseq definitions position))))
       (let ((definition (or (find-next-definition position)
                             (find-next-definition 0))))
         (when definition
@@ -809,7 +811,7 @@ The second argument indicates if include system's direct dependencies or not."
 (defun system-browser-cycle-selection ()
   (interactive)
   (let ((letter (aref (this-command-keys) 0)))
-    (case esb:system-browser-buffer-type
+    (cl-case esb:system-browser-buffer-type
       (packages (system-browser-cycle-next-package letter))
       (categories (system-browser-cycle-next-category letter))
       (definitions (system-browser-cycle-next-definition letter)))))
@@ -818,14 +820,14 @@ The second argument indicates if include system's direct dependencies or not."
   (interactive)
   (when (not (null esb:system-browser-buffer-type))
     (let* ((windows '(packages categories definitions definition))
-           (next-window (nth (mod (1+ (position esb:system-browser-buffer-type windows)) (length windows)) windows)))
+           (next-window (nth (mod (1+ (cl-position esb:system-browser-buffer-type windows)) (length windows)) windows)))
       (wlf:select esb:wm next-window))))
 
 (defun system-browser-switch-prev-buffer ()
   (interactive)
   (when (not (null esb:system-browser-buffer-type))
     (let* ((windows '(packages categories definitions definition))
-           (next-window (nth (mod (1- (position esb:system-browser-buffer-type windows)) (length windows)) windows)))
+           (next-window (nth (mod (1- (cl-position esb:system-browser-buffer-type windows)) (length windows)) windows)))
       (wlf:select esb:wm next-window))))
 
 (defvar system-browser-sel-mode-map
@@ -839,7 +841,7 @@ The second argument indicates if include system's direct dependencies or not."
     (define-key map (kbd "<backtab>") 'system-browser-switch-prev-buffer)
     (define-key map (kbd "<right>") 'system-browser-switch-next-buffer)
     (define-key map (kbd "<left>") 'system-browser-switch-prev-buffer)
-    (dolist (char (coerce "abcdefghijklmnñopqrstuvwxyz" 'list))
+    (dolist (char (cl-coerce "abcdefghijklmnñopqrstuvwxyz" 'list))
       (define-key map (string char) 'system-browser-cycle-selection))
     map))
 
