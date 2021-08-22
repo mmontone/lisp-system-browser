@@ -33,15 +33,19 @@
 
 ;; Default mode-line
 (cl-defmethod esb:packages-buffer-mode-line-format (system-browser-system)
+  (ignore system-browser-system)
   "Packages")
 
 (cl-defmethod esb:categories-buffer-mode-line-format (system-browser-system)
+  (ignore system-browser-system)
   "Categories")
 
 (cl-defmethod esb:definitions-buffer-mode-line-format (system-browser-system)
+  (ignore system-browser-system)
   "Definitions")
 
 (cl-defmethod esb:definition-buffer-mode-line-format (system-browser-system)
+  (ignore system-browser-system)
   nil)
 
 (defun esb:list-all-cl-packages ()
@@ -68,7 +72,8 @@
 ;;--------- Settings ---------------------------------
 
 (defgroup system-browser nil
-  "System browser configuration")
+  "System browser configuration"
+  :group 'applications)
 
 (defcustom esb:show-documentation-buffer nil
   "Show documentation buffer in system browser."
@@ -336,7 +341,7 @@ The second argument indicates if include system's direct dependencies or not."
   (wlf:select esb:wm 'definition)
   (wlf:set-buffer esb:wm 'definition esb:definition-buffer)
 
-  (block func
+  (cl-block func
     (with-current-buffer esb:definition-buffer
 
       ;; Check for unsaved changes in definition buffer
@@ -363,15 +368,7 @@ The second argument indicates if include system's direct dependencies or not."
 (defun esb:update-definition-buffer (package category definition)
   (when (not (buffer-live-p esb:definition-buffer))
     (esb:initialize-definition-buffer))
-  (let ((definition-type
-          (cond
-           ((string= category "functions") :function)
-           ((string= category "variables") :variable)
-           ((string= category "macros") :macro)
-           ((string= category "classes") :class)
-           ((string= category "generic functions") :generic-function)
-           (t (error "Invalid category: %s" category))))
-        (definition-function
+  (let ((definition-function
           (cond
            ((string= category "functions") 'def-properties:function-properties)
            ((string= category "variables") 'def-properties:variable-properties)
@@ -432,9 +429,11 @@ The second argument indicates if include system's direct dependencies or not."
       (esb:set-documentation-buffer-contents contents))))
 
 (cl-defmethod esb:list-categories ((system esb:common-lisp-system) package)
+  (ignore system package)
   '("functions" "variables" "macros" "classes" "generic functions"))
 
 (cl-defmethod esb:list-definitions ((system esb:common-lisp-system) package category)
+  (ignore system)
   (let ((definition-type
           (cond
            ((string= category "functions") :function)
