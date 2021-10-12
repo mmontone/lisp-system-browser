@@ -243,14 +243,14 @@ The second argument indicates if include system's direct dependencies or not."
         (newline))
       (setq buffer-read-only t))
     (when packages
-      (esb:select-package (first packages)))))
+      (esb:select-package (cl-first packages)))))
 
 (defun esb:select-package (package)
   (oset esb:current-browser-system selected-package package)
   (esb:update-categories-buffer package)
   (wlf:select esb:wm 'packages)
   ;; Move cursor to the line of the selection
-  (let ((item-pos (1+ (cl-position package (esb:list-packages esb:current-browser-system) :test 'equalp))))
+  (let ((item-pos (1+ (cl-position package (esb:list-packages esb:current-browser-system) :test 'cl-equalp))))
     (with-current-buffer esb:packages-buffer
       (goto-line item-pos))))
 
@@ -292,7 +292,7 @@ The second argument indicates if include system's direct dependencies or not."
               (esb:initialize-definition-buffer))
             (esb:set-definition-buffer-file file position)
             (esb:set-documentation-buffer-contents (or documentation "This package is not documented."))
-            (esb:select-category package (first categories)))
+            (esb:select-category package (cl-first categories)))
         (message "Definition source not found.")
         ))))
 
@@ -300,7 +300,7 @@ The second argument indicates if include system's direct dependencies or not."
   (oset esb:current-browser-system selected-category  category)
   (esb:update-definitions-buffer package category)
   (wlf:select esb:wm 'categories)
-  (let ((item-pos (1+ (cl-position category (esb:list-categories esb:current-browser-system package) :test 'equalp))))
+  (let ((item-pos (1+ (cl-position category (esb:list-categories esb:current-browser-system package) :test 'cl-equalp))))
     (with-current-buffer esb:categories-buffer
       (goto-line (1+ item-pos)))))
 
@@ -333,7 +333,7 @@ The second argument indicates if include system's direct dependencies or not."
   (wlf:select esb:wm 'definitions)
 
   ;; Move cursor to the line of the selection
-  (let ((item-pos (1+ (cl-position definition (esb:list-definitions esb:current-browser-system package category) :test 'equalp))))
+  (let ((item-pos (1+ (cl-position definition (esb:list-definitions esb:current-browser-system package category) :test 'cl-equalp))))
     (with-current-buffer esb:definitions-buffer
       (goto-line (1+ item-pos)))))
 
@@ -574,7 +574,7 @@ The second argument indicates if include system's direct dependencies or not."
   (interactive)
   (let* ((packages (esb:list-packages esb:current-browser-system))
          (package (esb:selected-package esb:current-browser-system))
-         (position (cl-position package packages :test 'equalp))
+         (position (cl-position package packages :test 'cl-equalp))
          (next-package (nth (1+ position) packages)))
     (when next-package
       (esb:select-package next-package))))
@@ -584,7 +584,7 @@ The second argument indicates if include system's direct dependencies or not."
   (interactive)
   (let* ((packages (esb:list-packages esb:current-browser-system))
          (package (esb:selected-package esb:current-browser-system))
-         (position (cl-position package packages :test 'equalp))
+         (position (cl-position package packages :test 'cl-equalp))
          (prev-package (nth (1- position) packages)))
     (when prev-package
       (esb:select-package prev-package))))
@@ -595,7 +595,7 @@ The second argument indicates if include system's direct dependencies or not."
   (let* ((categories (esb:list-categories esb:current-browser-system
                                           (esb:selected-package esb:current-browser-system)))
          (category (esb:selected-category esb:current-browser-system))
-         (position (cl-position category categories :test 'equalp))
+         (position (cl-position category categories :test 'cl-equalp))
          (next-category (nth (1+ position) categories)))
     (when next-category
       (esb:select-category (esb:selected-package esb:current-browser-system)
@@ -607,7 +607,7 @@ The second argument indicates if include system's direct dependencies or not."
   (let* ((categories (esb:list-categories esb:current-browser-system
                                           (esb:selected-package esb:current-browser-system)))
          (category (esb:selected-category esb:current-browser-system))
-         (position (cl-position category categories :test 'equalp))
+         (position (cl-position category categories :test 'cl-equalp))
          (prev-category (nth (1- position) categories)))
     (when prev-category
       (esb:select-category (esb:selected-package esb:current-browser-system)
@@ -620,9 +620,9 @@ The second argument indicates if include system's direct dependencies or not."
                                             (esb:selected-package esb:current-browser-system)
                                             (esb:selected-category esb:current-browser-system)))
          (definition (esb:selected-definition esb:current-browser-system))
-         (position (cl-position definition definitions :test 'equalp))
+         (position (cl-position definition definitions :test 'cl-equalp))
          (next-definition (or (and position (nth (1+ position) definitions))
-                              (first definitions))))
+                              (cl-first definitions))))
     (when next-definition
       (esb:select-definition
        (esb:selected-package esb:current-browser-system)
@@ -636,7 +636,7 @@ The second argument indicates if include system's direct dependencies or not."
                                             (esb:selected-package esb:current-browser-system)
                                             (esb:selected-category esb:current-browser-system)))
          (definition (esb:selected-definition esb:current-browser-system))
-         (position (cl-position definition definitions :test 'equalp))
+         (position (cl-position definition definitions :test 'cl-equalp))
          (prev-definition (and position (nth (1- position) definitions))))
     (when prev-definition
       (esb:select-definition
@@ -757,7 +757,7 @@ The second argument indicates if include system's direct dependencies or not."
   (let* ((packages (esb:list-packages esb:current-browser-system))
          (position (1+ (or (and (esb:selected-package esb:current-browser-system)
                                 (cl-position (esb:selected-package esb:current-browser-system)
-                                             packages :test 'equalp))
+                                             packages :test 'cl-equalp))
                            -1))))
     ;; Find next package that begins with LETTER, starting from POSITION
     (cl-flet ((find-next-package (position)
@@ -774,7 +774,7 @@ The second argument indicates if include system's direct dependencies or not."
                                           (esb:selected-package esb:current-browser-system)))
          (position (1+ (or (and (esb:selected-category esb:current-browser-system)
                                 (cl-position (esb:selected-category esb:current-browser-system)
-                                             categories :test 'equalp))
+                                             categories :test 'cl-equalp))
                            -1))))
     ;; Find next category that begins with LETTER, starting from POSITION
     (cl-flet ((find-next-category (position)
@@ -792,7 +792,7 @@ The second argument indicates if include system's direct dependencies or not."
                                             (esb:selected-category esb:current-browser-system)))
          (position (1+ (or (and (esb:selected-definition esb:current-browser-system)
                                 (cl-position (esb:selected-definition esb:current-browser-system)
-                                             definitions :test 'equalp))
+                                             definitions :test 'cl-equalp))
                            -1))))
     ;; Find next definition that begins with LETTER, starting from POSITION
     (cl-flet ((find-next-definition (position)
