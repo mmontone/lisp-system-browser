@@ -4,6 +4,7 @@
 ;;; Code:
 
 (require 'window-layout)
+(require 'slime)
 
 ;;------ Model ------------------------------------------
 
@@ -235,7 +236,7 @@ The second argument indicates if include system's direct dependencies or not."
                            (downcase package-name)
                          package-name)
                        'action (lambda (btn)
-				 (ignore btn)
+                                 (ignore btn)
                                  (esb:select-package package-name))
                        'face 'esb:definition-list-item-face
                        'follow-link t
@@ -266,7 +267,7 @@ The second argument indicates if include system's direct dependencies or not."
       (dolist (category categories)
         (insert-button category
                        'action (lambda (btn)
-				 (ignore btn)
+                                 (ignore btn)
                                  (esb:select-category package category))
                        'follow-link t
                        'face 'esb:definition-list-item-face
@@ -316,7 +317,7 @@ The second argument indicates if include system's direct dependencies or not."
                          (downcase definition)
                        definition)
                      'action (lambda (btn)
-			       (ignore btn)
+                               (ignore btn)
                                (esb:select-definition package category definition))
                      'face 'esb:definition-list-item-face
                      'follow-link t
