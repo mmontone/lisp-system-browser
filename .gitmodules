@@ -1,0 +1,3 @@
+[submodule "cl-def-properties"]
+	path = cl-def-properties
+	url = https://github.com/mmontone/cl-def-properties

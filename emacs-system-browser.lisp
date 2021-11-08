@@ -1,4 +1,4 @@
-(require :def-properties (merge-pathnames #p"def-properties.lisp" (uiop/pathname:pathname-directory-pathname *load-pathname*)))
+(require :def-properties (merge-pathnames #p"cl-def-properties/module.lisp" (uiop/pathname:pathname-directory-pathname *load-pathname*)))
 
 (defpackage :emacs-system-browser
   (:nicknames :esb)
