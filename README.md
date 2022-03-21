@@ -8,6 +8,8 @@ NOTE THAT THIS IS VERY MUCH WORK IN PROGRESS AT THIS MOMENT.
 
 ## Install
 
+ℹ️ Please consider using [SLIME :star:](https://github.com/mmontone/slime-star), that comes with this extension preinstalled.
+
 Clone this repository using git `--recursive` option, as this repository contains submodules.
 
 Load `swank` and add this repository path to `swank::*load-path*`, in your Lisp compiler init file (~/.sbclrc if using SBCL):
