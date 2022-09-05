@@ -1,11 +1,12 @@
 ;;; system-browser.el --- System browser      -*- lexical-binding: t -*-
 ;;;
-;;; Commentary: A Smalltalk-like browser for programming languages.
+;;; Commentary:
+;;; A Smalltalk-like browser for programming languages.
 
 ;;; Code:
 
 (require 'window-layout)
-(require 'slime)
+(require 'let-alist)
 
 ;;------ Model ------------------------------------------
 
@@ -20,18 +21,25 @@
                         :initform nil
                         :documentation "The current seleccted definition")))
 
-(defclass esb:common-lisp-system (esb:system-browser-system)
-  ((modules-list-function :accessor esb:modules-list-function
-                          :initform nil
-                          :documentation "Function used to get the list of modules, when present")))
-
-(cl-defgeneric esb:list-modules (system-browser-system))
-(cl-defgeneric esb:list-categories (system-browser-system module))
+(cl-defgeneric esb:list-modules (system-browser-system)
+  (:documentation "List modules of SYSTEM-BROWSER-SYSTEM."))
+(cl-defgeneric esb:list-categories (system-browser-system module)
+  (:documentation "Lisp categories of MODULE for SYSTEM-BROWSER-SYSTEM."))
 (cl-defgeneric esb:list-definitions (system-browser-system module category))
 (cl-defgeneric esb:modules-buffer-mode-line-format (system-browser-system))
 (cl-defgeneric esb:categories-buffer-mode-line-format (system-browser-system))
 (cl-defgeneric esb:definitions-buffer-mode-line-format (system-browser-system))
 (cl-defgeneric esb:definition-buffer-mode-line-format (system-browser-system))
+(cl-defgeneric esb:system-initialize-definition-buffer (system-browser-system))
+(cl-defgeneric esb:get-module-properties (system-browser-system module)
+  (:documentation "Return properties of MODULE.
+Return value is an alist with keys 'source, 'file, 'position, 'documentation"))
+(cl-defgeneric esb:get-definition-properties (system-browser-system definition category module)
+  (:documentation "Return properties of DEFINITION.
+Return value is an alist with keys 'source, 'file, 'position, 'documentation"))
+
+(cl-defmethod esb:read-module-name (system prompt)
+  (:documentation "Read module name from minibuffer."))
 
 ;; Default mode-line
 (cl-defmethod esb:modules-buffer-mode-line-format (system-browser-system)
@@ -50,26 +58,17 @@
   (ignore system-browser-system)
   nil)
 
-(defun esb:list-all-cl-packages ()
-  (slime-eval '(cl:sort (cl:mapcar 'cl:package-name (cl:list-all-packages)) 'cl:string<)))
-
-(defun esb:asdf-system-packages (system-name &optional include-direct-dependencies)
-  (slime-eval `(esb:asdf-system-packages ,system-name ,include-direct-dependencies)))
-
-(cl-defmethod esb:list-modules ((system esb:common-lisp-system))
-  (if (esb:modules-list-function system)
-      (funcall (esb:modules-list-function system))
-    (esb:list-all-cl-packages)))
-
 (defvar esb:modules-buffer)
 (defvar esb:catgories-buffer)
 (defvar esb:definitions-buffer)
 (defvar esb:definitions-buffer)
 (defvar esb:documentation-buffer)
 
-(defvar esb:current-browser-system (make-instance 'esb:common-lisp-system))
+(defvar esb:current-browser-system nil
+  "The current system browser system.")
 
-(defvar system-browser-start-hook '(esb:maybe-browse-customized-asdf-system))
+(defvar system-browser-start-hook nil
+  "Hook that runs when system browser is opened.")
 
 ;;--------- Settings ---------------------------------
 
@@ -101,27 +100,6 @@
   :group 'system-browser
   :tag "Preserve definition buffer on exit")
 
-(defcustom esb:start-slime-automatically nil
-  "When enabled, SLIME is started automatically when system browser is started."
-  :type 'boolean
-  :group 'system-browser
-  :tag "Start SLIME automatically")
-
-(defcustom esb:load-asdf-systems-on-browse t
-  "When enabled, load ASDF systems before browsing them."
-  :type 'boolean
-  :group 'system-browser
-  :tag "Load ASDF systems on browse")
-
-(defcustom esb:asdf-system (cons "" nil)
-  "When set, system-browser will browse the ASDF system on start.
-The first argument specifies the ASDF system name.
-The second argument indicates if include system's direct dependencies or not."
-  :type '(cons (string :tag "ASDF system name")
-               (boolean :tag "Include direct dependencies"))
-  :group 'system-browser
-  :tag "ASDF system")
-
 ;;------- Faces --------------------------
 
 (defface esb:definition-list-item-face
@@ -130,8 +108,7 @@ The second argument indicates if include system's direct dependencies or not."
      :height 0.9)
     (((background dark))
      :foreground "white"
-     :height 0.9)
-    )
+     :height 0.9))
   "Face for system-browser definitions list items"
   :group 'system-browser-faces)
 
@@ -148,8 +125,7 @@ The second argument indicates if include system's direct dependencies or not."
 (defface esb:definitions-list-header-face
   '((t :inherit bold))
   "Face for system-browser definitions list headers"
-  :group 'system-browser-faces
-  )
+  :group 'system-browser-faces)
 
 ;;-------- Buffers ---------------------------------
 
@@ -175,8 +151,7 @@ The second argument indicates if include system's direct dependencies or not."
     (esb:setup-selection-list-buffer)
     (when (esb:modules-buffer-mode-line-format esb:current-browser-system)
       (setq header-line-format (esb:modules-buffer-mode-line-format esb:current-browser-system)))
-    (setq esb:system-browser-buffer-type 'modules)
-    ))
+    (setq esb:system-browser-buffer-type 'modules)))
 
 (defun esb:initialize-categories-buffer ()
   (setq esb:categories-buffer (get-buffer-create "*esb-categories*"))
@@ -199,7 +174,8 @@ The second argument indicates if include system's direct dependencies or not."
 
   (with-current-buffer esb:definition-buffer
     (setq buffer-read-only nil)
-    (lisp-mode)
+
+    (esb:system-initialize-definition-buffer esb:current-browser-system)
 
     ;; Show visited file in mode-line
     (setq mode-line-format (cons '(:eval (file-name-nondirectory buffer-file-name))
@@ -219,8 +195,7 @@ The second argument indicates if include system's direct dependencies or not."
 
     (setq esb:system-browser-buffer-type 'definition)
 
-    (system-browser-mode)
-    ))
+    (system-browser-mode)))
 
 (defun esb:initialize-documentation-buffer ()
   (setq esb:documentation-buffer (get-buffer-create "*esb-documentation*"))
@@ -261,9 +236,8 @@ The second argument indicates if include system's direct dependencies or not."
     (with-current-buffer esb:categories-buffer
       (setq buffer-read-only nil)
       (erase-buffer)
-      (insert (propertize module 'face
-                          'esb:definitions-list-header-face
-                          ))
+      (insert (propertize module
+			  'face 'esb:definitions-list-header-face))
       (newline)
       (dolist (category categories)
         (insert-button category
@@ -276,24 +250,15 @@ The second argument indicates if include system's direct dependencies or not."
         (newline))
       (setq buffer-read-only t))
 
-    (let* ((module-properties (slime-eval `(esb::serialize-for-emacs (def-properties:package-properties ,module t))))
-           (source (cl-find :source module-properties :key 'car))
-           (file (and source
-                      (or (cadr (cl-find :file (cl-remove-if-not 'listp source) :key 'car))
-                          (caddr (cl-find :buffer-and-file (cl-remove-if-not 'listp source) :key 'car)))))
-           (position (and source (or
-                                  (cadr (cl-find :position (cl-remove-if-not 'listp source) :key 'car))
-                                  (cadr (cl-find :offset (cl-remove-if-not 'listp source) :key 'car))
-                                  )))
-           (documentation (cdr (assoc :documentation module-properties))))
+    (let-alist (esb:get-module-properties esb:current-browser-system module)
 
       ;; Show module definition source in definition buffer
-      (if (and file position)
+      (if (and .file .position)
           (progn
             (when (not (buffer-live-p esb:definition-buffer))
               (esb:initialize-definition-buffer))
-            (esb:set-definition-buffer-file file position)
-            (esb:set-documentation-buffer-contents (or documentation "This module is not documented."))
+            (esb:set-definition-buffer-file .file .position)
+            (esb:set-documentation-buffer-contents (or .documentation "This module is not documented."))
             (esb:select-category module (cl-first categories)))
         (message "Definition source not found.")
         ))))
@@ -370,29 +335,14 @@ The second argument indicates if include system's direct dependencies or not."
 (defun esb:update-definition-buffer (module category definition)
   (when (not (buffer-live-p esb:definition-buffer))
     (esb:initialize-definition-buffer))
-  (let ((definition-function
-         (cond
-          ((string= category "functions") 'def-properties:function-properties)
-          ((string= category "variables") 'def-properties:variable-properties)
-          ((string= category "macros") 'def-properties:macro-properties)
-          ((string= category "classes") 'def-properties:class-properties)
-          ((string= category "generic functions") 'def-properties:generic-function-properties)
-          (t (error "Invalid category: %s" category))
-          )))
-    (let* ((definition-properties (slime-eval `(esb:serialize-for-emacs (,definition-function (cl:intern ,definition ,module) t))))
-           (source (cl-find :source definition-properties :key 'car))
-           (file (and source (or
-                              (cadr (cl-find :file (cl-remove-if-not 'listp source) :key 'car))
-                              (caddr (cl-find :buffer-and-file (cl-remove-if-not 'listp source) :key 'car)))))
-           (position (and source (or
-                                  (cadr (cl-find :position (cl-remove-if-not 'listp source) :key 'car))
-                                  (cadr (cl-find :offset (cl-remove-if-not 'listp source) :key 'car))))))
-      (if (and file position)
+  (let-alist (esb:get-definition-properties esb:current-browser-system
+					    definition category module)
+      (if (and .file .position)
           (with-current-buffer esb:definition-buffer
             (wlf:select esb:wm 'definition)
             (switch-to-buffer esb:definition-buffer nil t)
-            (esb:set-definition-buffer-file file position))
-        (message "Definition source not found.")))))
+            (esb:set-definition-buffer-file .file .position))
+        (message "Definition source not found."))))
 
 (defun esb:set-documentation-buffer-contents (contents)
   (with-current-buffer esb:documentation-buffer
@@ -403,48 +353,17 @@ The second argument indicates if include system's direct dependencies or not."
     (setq buffer-read-only t)))
 
 (defun esb:update-documentation-buffer (module category definition)
-  (let ((definition-type
-         (cond
-          ((string= category "functions") :function)
-          ((string= category "variables") :variable)
-          ((string= category "macros") :macro)
-          ((string= category "classes") :class)
-          ((string= category "generic functions") :generic-function)
-          ))
-        (definition-function
-         (cond
-          ((string= category "functions") 'def-properties:function-properties)
-          ((string= category "variables") 'def-properties:variable-properties)
-          ((string= category "macros") 'def-properties:macro-properties)
-          ((string= category "classes") 'def-properties:class-properties)
-          ((string= category "generic functions") 'def-properties:generic-function-properties))))
-    (let* ((definition-properties (slime-eval `(esb::serialize-for-emacs (,definition-function (cl:intern ,definition ,module) t))))
-           (documentation (cdr (assoc :documentation definition-properties)))
-           (contents (or documentation "This definition is not documented.")))
-      (when (eql definition-type :variable)
+  (let-alist (esb:get-definition-properties esb:current-browser-system
+					    definition category module)
+    (let ((contents (or .documentation "This definition is not documented.")))
+      (when (string= category "variables")
         (setq contents (concat contents "\n\n"))
-        (if (not (cdr (assoc :boundp definition-properties)))
+        (if (not .boundp)
             (setq contents (concat contents "The variable is UNBOUND."))
           (progn
             (setq contents (concat contents (propertize "Variable value: " 'face 'bold)))
-            (setq contents (concat contents (cdr (assoc :value definition-properties)))))))
+            (setq contents (concat contents .value)))))
       (esb:set-documentation-buffer-contents contents))))
-
-(cl-defmethod esb:list-categories ((system esb:common-lisp-system) module)
-  (ignore system module)
-  '("functions" "variables" "macros" "classes" "generic functions"))
-
-(cl-defmethod esb:list-definitions ((system esb:common-lisp-system) module category)
-  (ignore system)
-  (let ((definition-type
-         (cond
-          ((string= category "functions") :function)
-          ((string= category "variables") :variable)
-          ((string= category "macros") :macro)
-          ((string= category "classes") :class)
-          ((string= category "generic functions") :generic-function))))
-
-    (slime-eval `(esb:list-definitions ,module ,definition-type :include-internal-p ,esb:list-internal-definitions))))
 
 ;;---- Window management ---------------------------
 
@@ -509,27 +428,11 @@ The second argument indicates if include system's direct dependencies or not."
 (defun system-browser ()
   "Open the currently instantiated system browser."
   (interactive)
-
-  (cl-block system-browser
-
-    ;; Start SLIME if needed
-    (when (not (slime-connected-p))
-      (when (or esb:start-slime-automatically
-                (yes-or-no-p "SLIME is not connected. Start? "))
-        (add-hook 'slime-connected-hook 'system-browser t)
-        (slime))
-      (cl-return-from system-browser))
-
-    (esb:system-browser-initialize)
-    (run-hooks 'system-browser-start-hook)))
+  
+  (esb:system-browser-initialize)
+  (run-hooks 'system-browser-start-hook))
 
 ;;------- Commands ------------------------------------------------
-
-(defun lisp-system-browser ()
-  "Open the Common Lisp system browser."
-  (interactive)
-  (setq esb:current-browser-system (make-instance 'esb:common-lisp-system))
-  (system-browser))
 
 (defun system-browser-reset-layout ()
   "Reset system browser layout. Use this when Emacs windows break the browser's layout."
@@ -553,7 +456,7 @@ The second argument indicates if include system's direct dependencies or not."
 
 (defun system-browser-browse-module (module-name)
   "Browse a particular module completed from command bar."
-  (interactive (list (slime-read-package-name "Browse package: ")))
+  (interactive (list (esb:read-module-name esb:current-browser-system "Browse module: ")))
   (esb:select-module module-name))
 
 (defun system-browser-browse-definition (definition-name)
@@ -701,19 +604,6 @@ The second argument indicates if include system's direct dependencies or not."
   (interactive)
   (apropos-command "system-browser"))
 
-(defun system-browser-browse-system (system-name)
-  "Browse ASDF system packages."
-  (interactive (list (slime-read-system-name)))
-  (if (zerop (length system-name))
-      (oset esb:current-browser-system modules-list-function nil)
-    (let ((include-direct-dependencies (not (null current-prefix-arg))))
-      (when esb:load-asdf-systems-on-browse
-        (slime-eval `(cl:progn (asdf:operate 'asdf:load-op ,system-name) nil)))
-      (oset esb:current-browser-system modules-list-function
-            (lambda ()
-              (esb:asdf-system-packages system-name include-direct-dependencies)))))
-  (system-browser-refresh))
-
 ;;------ Menu ----------------------------
 
 (defvar system-browser-mode-map
@@ -852,15 +742,6 @@ The second argument indicates if include system's direct dependencies or not."
   :lighter " system-browser-sel"
   :keymap system-browser-sel-mode-map
   :group 'system-browser-sel)
-
-;;------ SLIME --------------------------------------------
-
-(define-slime-contrib system-browser
-  "Smalltalk-like system browser for Common Lisp"
-  (:authors "Mariano Montone")
-  (:license "GPL")
-  (:slime-dependencies slime-asdf)
-  (:swank-dependencies emacs-system-browser))
 
 (provide 'system-browser)
 
