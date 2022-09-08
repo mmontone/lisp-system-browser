@@ -619,8 +619,6 @@ Return value is an alist with keys 'source, 'file, 'position, 'documentation"))
   '("System Browser"
     ["Browse module..." system-browser-browse-module
      :help "Browse a module"]
-    ["Browse ASDF system..." system-browser-browse-system
-     :help "Browse an ASDF system packages"]
     ["Browse definition..." system-browser-browse-definition
      :help "Browse a definition"]
     "--"
