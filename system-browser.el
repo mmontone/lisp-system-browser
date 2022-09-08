@@ -7,6 +7,7 @@
 
 (require 'window-layout)
 (require 'let-alist)
+(require 'eieio)
 
 ;;------ Model ------------------------------------------
 
@@ -418,12 +419,6 @@ Return value is an alist with keys 'source, 'file, 'position, 'documentation"))
 
   (esb:update-modules-buffer)
   (wlf:select esb:wm 'modules))
-
-(defun esb:maybe-browse-customized-asdf-system ()
-  (when (not (zerop (length (car esb:asdf-system))))
-    (when (cdr esb:asdf-system)
-      (setq current-prefix-arg (cdr esb:asdf-system)))
-    (system-browser-browse-system (car esb:asdf-system))))
 
 (defun system-browser ()
   "Open the currently instantiated system browser."

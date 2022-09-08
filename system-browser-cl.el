@@ -47,7 +47,13 @@ The second argument indicates if include system's direct dependencies or not."
 (cl-defmethod esb:list-modules ((system esb/cl:common-lisp-system))
   (if (esb:modules-list-function system)
       (funcall (esb:modules-list-function system))
-    (esb:list-all-cl-packages)))
+    (esb/cl:list-all-cl-packages)))
+
+(defun esb/cl:maybe-browse-customized-asdf-system ()
+  (when (not (zerop (length (car esb/cl:asdf-system))))
+    (when (cdr esb/cl:asdf-system)
+      (setq current-prefix-arg (cdr esb/cl:asdf-system)))
+    (system-browser-browse-system (car esb/cl:asdf-system))))
 
 (cl-defmethod esb:system-initialize-definition-buffer ((system esb/cl:common-lisp-system))
   (lisp-mode))
@@ -140,7 +146,7 @@ The second argument indicates if include system's direct dependencies or not."
 
 ;;------ SLIME --------------------------------------------
 
-(define-slime-contrib system-browser
+(define-slime-contrib system-browser-cl
   "Smalltalk-like system browser for Common Lisp"
   (:authors "Mariano Montone")
   (:license "GPL")
