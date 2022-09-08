@@ -19,12 +19,12 @@ Load `swank` and add this repository path to `swank::*load-path*`, in your Lisp 
 (push #p"~/lisp-system-browser/" swank::*load-path*)
 ```
 
-In Emacs, add this repository path to `load-path` and `system-browser` to `slime-contribs` in `~/.emacs` init file, like:
+In Emacs, add this repository path to `load-path` and `system-browser-cl` to `slime-contribs` in `~/.emacs` init file, like:
 
 ```
 (push "~/lisp-system-browser" load-path)
 
-(setq slime-contribs '(slime-fancy system-browser))
+(setq slime-contribs '(slime-fancy system-browser-cl))
 
 (slime-setup)
 ```
