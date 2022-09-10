@@ -3,11 +3,13 @@
 ;;; Commentary:
 ;;; System Browser backend for Common Lisp.
 
+;;; Code:
+
 (require 'system-browser)
 (require 'slime)
 
 (defgroup system-browser-cl nil
-  "System Browser Common Lisp backend"
+  "System Browser Common Lisp backend."
   :group 'system-browser)
 
 (defcustom esb/cl:start-slime-automatically nil
@@ -31,7 +33,7 @@ The second argument indicates if include system's direct dependencies or not."
   :group 'system-browser-cl
   :tag "ASDF system")
 
-(add-hook 'system-browser-start-hook 'esb:maybe-browse-customized-asdf-system)
+(add-hook 'system-browser-start-hook 'esb/cl:maybe-browse-customized-asdf-system)
 
 (defclass esb/cl:common-lisp-system (esb:system-browser-system)
   ((modules-list-function :accessor esb:modules-list-function
@@ -39,6 +41,7 @@ The second argument indicates if include system's direct dependencies or not."
                           :documentation "Function used to get the list of modules, when present")))
 
 (defun esb/cl:list-all-cl-packages ()
+  "Return list of Common Lisp packages."
   (slime-eval '(cl:sort (cl:mapcar 'cl:package-name (cl:list-all-packages)) 'cl:string<)))
 
 (defun esb/cl:asdf-system-packages (system-name &optional include-direct-dependencies)
